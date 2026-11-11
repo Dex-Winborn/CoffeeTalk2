@@ -1,8 +1,10 @@
 <?php
+// UPDATE: saves the changes made in pages/record_form.php to an existing menu item.
 require_once __DIR__ . "/../includes/validation.php";
 require_login();
 require_post("pages/records.php");
 
+// The form sends the id of the item being edited.
 $id = filter_var($_POST["id"] ?? "", FILTER_VALIDATE_INT);
 if ($id === false || $id < 1) {
     flash_set("error", "Invalid menu item.");
@@ -17,6 +19,7 @@ if ($errors) {
 }
 
 try {
+    // WHERE id=? makes sure only this one item is changed.
     $stmt = db()->prepare("UPDATE menu_items SET name=?, category=?, description=?, price=? WHERE id=?");
     $stmt->bind_param("sssdi", $item["name"], $item["category"], $item["description"], $item["price"], $id);
     $stmt->execute();

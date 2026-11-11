@@ -1,23 +1,34 @@
 <?php
 /** Server-side validation; client checks are only convenience. */
+// Every action file calls these functions before it touches the database. They read $_POST, check the
+// values and return [errors, clean values].
+// The JavaScript checks in js/validation.js are only a convenience; these are the checks that count.
+// Also loads the session and database helpers.
 require_once __DIR__ . "/functions.php";
 
+// Order size limits: up to 20 lines per order, 50 of one item for staff and 20 of one item for public
+// customers.
 const MAX_LINES_PER_ORDER = 20;
 const MAX_LINE_QUANTITY = 50;
 const MAX_PUBLIC_LINE_QUANTITY = 20;
 
+// Reads a text field from the form. Returns an empty string when it is missing or is not plain text
+// (for example an array). Spaces at the ends are removed.
 function post_string(string $key): string
 {
     $value = $_POST[$key] ?? "";
     return is_string($value) ? trim($value) : "";
 }
 
+// Same, but spaces are kept, because they can be part of a password.
 function post_password(string $key): string
 {
     $value = $_POST[$key] ?? "";
     return is_string($value) ? $value : "";
 }
 
+// Password rule: at least 8 characters with a letter and a number. Returns an error message, or an
+// empty string when the password is fine.
 function password_problem(string $password): string
 {
     if (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) {
@@ -26,6 +37,7 @@ function password_problem(string $password): string
     return "";
 }
 
+// Checks the add/edit menu item form (name, category, description and price).
 function validate_item(): array
 {
     $errors = [];
@@ -43,6 +55,7 @@ function validate_item(): array
     if (mb_strlen($description) > 255) {
         $errors[] = "Description must be 255 characters or fewer.";
     }
+    // The price must be a number above 0 and within the limit of the DECIMAL(8,2) column.
     $price = filter_var($raw_price, FILTER_VALIDATE_FLOAT);
     if ($price === false || $price <= 0 || $price > 99999.99) {
         $errors[] = "Price must be greater than 0 and no more than 99,999.99.";
@@ -57,6 +70,8 @@ function validate_item(): array
     ]];
 }
 
+// Checks the registration form. The username must be 4 to 30 letters, numbers or underscores.
+// Duplicates are checked in auth/register.php.
 function validate_registration(): array
 {
     $errors = [];
@@ -99,6 +114,7 @@ function validate_order(): array
     $notes = post_string("notes");
     $ids = $_POST["item_id"] ?? [];
     $quantities = $_POST["quantity"] ?? [];
+    // item_id[] and quantity[] must be arrays; anything else is ignored.
     if (!is_array($ids) || !is_array($quantities)) {
         $ids = [];
         $quantities = [];
@@ -111,6 +127,7 @@ function validate_order(): array
     }
 
     $lines = [];
+    // Each row needs a valid item id and a whole-number quantity from 1 to 50.
     foreach ($ids as $index => $raw_id) {
         $item_id = filter_var($raw_id, FILTER_VALIDATE_INT);
         $quantity = filter_var($quantities[$index] ?? "", FILTER_VALIDATE_INT);
@@ -150,6 +167,8 @@ function validate_public_order(): array
 
     $lines = [];
     if (is_array($quantities)) {
+        // The public form sends every menu item. Items left at 0 are skipped; the rest become order
+        // lines.
         foreach ($quantities as $raw_id => $raw_quantity) {
             $item_id = filter_var((string) $raw_id, FILTER_VALIDATE_INT);
             $quantity = filter_var($raw_quantity, FILTER_VALIDATE_INT);

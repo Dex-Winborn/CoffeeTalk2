@@ -1,5 +1,6 @@
 <?php
 /** Puts a deactivated menu item back on the public menu. */
+// Undo of delete_record.php: sets is_active back to 1.
 require_once __DIR__ . "/../includes/validation.php";
 require_login();
 require_post("pages/records.php");
@@ -11,6 +12,7 @@ if ($id === false || $id < 1) {
 }
 
 try {
+    // Reactivate the item.
     $name = set_menu_active($id, true);
     if ($name === null) {
         flash_set("error", "That menu item no longer exists.");

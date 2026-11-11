@@ -1,13 +1,19 @@
 <?php
+// READ: lists the menu items in an HTML table with search and filters. Each row has Edit and Delete
+// (soft delete) or Restore buttons.
 require_once __DIR__ . "/../includes/functions.php";
 require_login();
 
+// Filters from the URL: search text, category and status (active by default). Unknown values are
+// replaced with safe defaults.
 $q = isset($_GET["q"]) && is_string($_GET["q"]) ? trim($_GET["q"]) : "";
 $category = isset($_GET["category"]) && is_string($_GET["category"]) ? $_GET["category"] : "";
 $status = isset($_GET["status"]) && is_string($_GET["status"]) ? $_GET["status"] : "active";
 if (!in_array($status, ["active", "inactive", "all"], true)) $status = "active";
 if (!in_array($category, MENU_CATEGORIES, true)) $category = "";
 
+// Conditions are added only for the filters that were used. The values are bound as parameters, and %
+// and _ in the search text are escaped.
 $where = [];
 $types = "";
 $params = [];
@@ -24,6 +30,7 @@ if ($category !== "") {
 if ($status === "active") $where[] = "is_active=1";
 elseif ($status === "inactive") $where[] = "is_active=0";
 
+// Put the query together and run it with a prepared statement.
 $sql = "SELECT id,name,category,description,price,is_active,updated_at FROM menu_items"
     . ($where ? " WHERE " . implode(" AND ", $where) : "")
     . " ORDER BY id";
@@ -45,6 +52,7 @@ require __DIR__ . "/../includes/header.php";
 <div class="app-head-actions"><a class="button" href="<?= e(url('pages/record_form.php')) ?>">+ Add menu item</a></div>
 </div>
 
+<?php /* Search and filter form. It uses GET, so the filters stay in the address. */ ?>
 <form class="filter-bar" method="get" action="<?= e(url('pages/records.php')) ?>">
 <div class="field"><label for="q">Search</label><input type="search" id="q" name="q" placeholder="Item name" value="<?= e($q) ?>" /></div>
 <div class="field"><label for="category">Category</label><select id="category" name="category"><option value="">All categories</option><?php foreach (MENU_CATEGORIES as $option): ?><option value="<?= e($option) ?>"<?= $option === $category ? ' selected' : '' ?>><?= e($option) ?></option><?php endforeach; ?></select></div>
@@ -58,6 +66,7 @@ require __DIR__ . "/../includes/header.php";
 <div class="table-wrap"><table class="data-table">
 <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
 <tbody>
+<?php /* One table row per item. Inactive items are dimmed. */ ?>
 <?php foreach ($items as $item): ?>
 <tr<?= $item['is_active'] ? '' : ' class="is-inactive"' ?>>
 <td data-label="ID"><?= (int) $item['id'] ?></td>
@@ -69,6 +78,10 @@ require __DIR__ . "/../includes/header.php";
 <td data-label="Actions">
 <div class="row-actions">
 <a class="btn-sm" href="<?= e(url('pages/record_form.php?id=' . (int) $item['id'])) ?>">Edit</a>
+<?php /*
+   Active items get a Delete button, which asks for confirmation first. Inactive items get a Restore
+   button.
+*/ ?>
 <?php if ($item['is_active']): ?>
 <form method="post" action="<?= e(url('actions/delete_record.php')) ?>" data-confirm="Delete ‘<?= e($item['name']) ?>’? It will be deactivated and removed from the public menu.">
 <?= csrf_field() ?>

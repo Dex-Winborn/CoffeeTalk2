@@ -1,11 +1,15 @@
 <?php
+// Public home page: hero, reviews, live menu, highlights, space and location. A dashboard link appears
+// when someone is logged in.
 require_once __DIR__ . "/includes/functions.php";
+// Where the dashboard link goes depends on the role.
 $dashboard_label = is_admin() ? "Admin Dashboard" : "Staff Dashboard";
 $dashboard_path = is_admin() ? "pages/admin_dashboard.php" : "pages/dashboard.php";
 
 // Shared inline icons, printed once instead of pasted at every use.
 $arrow_svg = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h13m-5-5 5 5-5 5" /></svg>';
 $star_svg = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.5 5.4 5.9.7-4.4 4 1.2 5.8L10 14.5l-5.2 2.9 1.2-5.8-4.4-4 5.9-.7z" /></svg>';
+// Sample reviews shown in the Customer reviews section.
 $reviews = [
     [
         "initial" => "R",
@@ -36,6 +40,7 @@ $reviews = [
 		<meta name="description" content="Coffee Talk in Calamba City — thoughtfully brewed coffee, easy conversations, and a little room to stay awhile." />
 		<title>Coffee Talk — Good coffee, better conversations</title>
 		<link rel="icon" type="image/png" href="images/logo.png" />
+		<!-- Preview tags used when the link is shared on social media. -->
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content="Coffee Talk — Good coffee, better conversations" />
 		<meta property="og:description" content="Thoughtfully brewed coffee, easy conversations, and a little room to stay awhile in Calamba City." />
@@ -51,9 +56,11 @@ $reviews = [
 		<link rel="stylesheet" href="css/style.css" />
 	</head>
 	<body>
+		<!-- Announcement bar at the top. -->
 		<div class="announcement">
 			Your new favorite corner in Calamba <span>·</span> Come on in
 		</div>
+		<!-- Navigation bar. The menu button is shown on phones (js/main.js). -->
 		<header class="site-header">
 			<nav class="nav-wrap" aria-label="Main navigation">
 				<a class="brand" href="#home" aria-label="Coffee Talk home">
@@ -68,6 +75,7 @@ $reviews = [
 					<a href="#story">Reviews</a>
 					<a href="pages/menu.php">Order online</a>
 					<a href="#space">The space</a>
+					<?php /* Logged in: dashboard link. Otherwise: staff login link. */ ?>
 					<?php if (is_logged_in()): ?>
 						<a href="<?= e(url($dashboard_path)) ?>"><?= e($dashboard_label) ?></a>
 					<?php else: ?>
@@ -79,6 +87,7 @@ $reviews = [
 		</header>
 
 		<main>
+			<!-- Hero: headline, buttons and the lobby photo. -->
 			<div class="hero-band">
 				<section class="hero" id="home">
 					<div class="hero-text">
@@ -104,6 +113,7 @@ $reviews = [
 				</section>
 			</div>
 
+			<!-- Scrolling text strip. -->
 			<div class="ticker" aria-hidden="true">
 				<div class="ticker-track">
 					<span>✳</span> Good coffee, better conversations <span>✳</span> A cozy
@@ -113,6 +123,7 @@ $reviews = [
 				</div>
 			</div>
 
+			<!-- Customer reviews, looped from the reviews list at the top of this file. -->
 			<section class="section" id="story">
 				<div class="section-inner reviews">
 					<div class="reviews-head">
@@ -134,6 +145,7 @@ $reviews = [
 				</div>
 			</section>
 
+			<!-- Live menu read from MySQL by public_menu_html(). Only active items appear. -->
 			<section class="section menu-section" id="menu">
 				<div class="section-inner">
 					<div class="menu-heading">
@@ -144,6 +156,7 @@ $reviews = [
 				</div>
 			</section>
 
+			<!-- Featured dishes with photos. -->
 			<section class="section feature-section" id="highlights">
 				<div class="section-inner">
 					<div class="feature-header"><div class="eyebrow">Our favorites</div><h2>Signature bites & sips.</h2></div>
@@ -154,6 +167,7 @@ $reviews = [
 				</div>
 			</section>
 
+			<!-- The space and its amenities. -->
 			<section class="section" id="space">
 				<div class="section-inner space-section">
 					<div class="space-copy">
@@ -169,6 +183,7 @@ $reviews = [
 				</div>
 			</section>
 
+			<!-- Address, opening note and the embedded map. -->
 			<section class="section visit-section" id="visit">
 				<div class="section-inner visit-grid">
 					<div class="visit-copy">
@@ -188,6 +203,7 @@ $reviews = [
 			</section>
 		</main>
 
+		<!-- Footer with links. -->
 		<footer class="footer">
 			<div class="footer-inner">
 				<a class="brand" href="#home" aria-label="Coffee Talk home"><img src="images/logo.png" alt="Coffee Talk" /></a>
@@ -199,6 +215,7 @@ $reviews = [
 				</div>
 			</div>
 		</footer>
+		<!-- Mobile menu toggle and the footer year. -->
 		<script src="js/main.js"></script>
 	</body>
 </html>

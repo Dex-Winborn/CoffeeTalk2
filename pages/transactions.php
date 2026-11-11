@@ -1,8 +1,12 @@
 <?php
+// Orders page: a form to create an order (the transaction), a filterable table of orders and a status
+// drop-down on each row.
+// Saving, payment and status changes are handled by the files in actions/.
 require_once __DIR__ . "/../includes/functions.php";
 require_login();
 
 $conn = db();
+// Values from a failed save, used to fill the form in again.
 $old = old_get();
 $customer = isset($old["customer_name"]) && is_string($old["customer_name"]) ? $old["customer_name"] : "";
 $notes = isset($old["notes"]) && is_string($old["notes"]) ? $old["notes"] : "";
@@ -22,6 +26,7 @@ if (isset($old["item_id"]) && is_array($old["item_id"])) {
 }
 if (!$order_lines) $order_lines[] = ["id" => "", "qty" => "1"];
 
+// Active menu items grouped by category, for the item drop-downs.
 $menu = [];
 $result = $conn->query("SELECT id,name,category,price FROM menu_items WHERE is_active=1 ORDER BY category,name");
 while ($row = $result->fetch_assoc()) $menu[$row["category"]][] = $row;
@@ -47,16 +52,19 @@ if ($status !== "") {
     $params[] = $status;
 }
 
+// Load one page of 25 orders, then the payments of those orders.
 $page = isset($_GET["page"]) ? max(1, (int) $_GET["page"]) : 1;
 $list = fetch_order_page($where, $types, $params, 25, $page);
 $orders = $list["orders"];
 $payments = fetch_payments(array_column($orders, "ref"));
 
+// Keeps the search and status filters in the Newer and Older links.
 $filters = array_filter(["q" => $q, "status" => $status], function ($value) { return $value !== ""; });
 $page_url = function (int $number) use ($filters): string {
     return url("pages/transactions.php?" . http_build_query($filters + ["page" => $number]));
 };
 
+// Page settings, then the shared header.
 $pageTitle = "Orders — Coffee Talk";
 $activePage = "transactions";
 $extraScripts = ["js/validation.js"];
@@ -71,9 +79,11 @@ require __DIR__ . "/../includes/header.php";
 <section class="panel">
 <div class="panel-head"><h2>New order</h2></div>
 <?php if ($menu): ?>
+<?php /* New order form. js/validation.js adds and removes item rows and updates the total. */ ?>
 <form class="order-form" method="post" action="<?= e(url('actions/save_transaction.php')) ?>" data-validate novalidate>
 <?= csrf_field() ?>
 <div class="field"><label for="customer_name">Customer name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" value="<?= e($customer) ?>" /><span class="field-error" aria-live="polite"></span></div>
+<?php /* One row per item (menu item and quantity). */ ?>
 <div class="order-lines" id="order-lines">
 <?php foreach ($order_lines as $line): ?>
 <div class="order-line">
@@ -92,6 +102,7 @@ require __DIR__ . "/../includes/header.php";
 <?php endif; ?>
 </section>
 
+<?php /* Search by reference or customer, and filter by status. */ ?>
 <form class="filter-bar" method="get" action="<?= e(url('pages/transactions.php')) ?>">
 <div class="field"><label for="q">Search</label><input type="search" id="q" name="q" placeholder="Reference or customer" value="<?= e($q) ?>" /></div>
 <div class="field"><label for="status">Status</label><select id="status" name="status"><option value="">All statuses</option><?php foreach (ORDER_STATUSES as $option): ?><option value="<?= e($option) ?>"<?= $option === $status ? ' selected' : '' ?>><?= e($option) ?></option><?php endforeach; ?></select></div>
@@ -104,14 +115,25 @@ require __DIR__ . "/../includes/header.php";
 <div class="table-wrap"><table class="data-table">
 <thead><tr><th>Reference</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Payment</th><th>Taken by</th><th>Placed</th><th>Update</th></tr></thead>
 <tbody>
+<?php /* One table row per order. */ ?>
 <?php foreach ($orders as $order): ?>
-<?php $next = allowed_status_changes($order['status']); $pay = $payments[$order['ref']] ?? null; ?>
+<?php
+// The payment of this order, if any, and the statuses it may move to. A paid order cannot be
+// cancelled.
+$pay = $payments[$order['ref']] ?? null;
+$next = allowed_status_changes($order['status']);
+if ($pay) $next = array_values(array_diff($next, ["Cancelled"]));
+?>
 <tr>
 <td data-label="Reference"><?= e($order['ref']) ?></td>
 <td data-label="Customer"><?= e($order['customer_name']) ?><?php if ($order['notes'] !== ''): ?><small class="cell-note"><?= e($order['notes']) ?></small><?php endif; ?></td>
 <td data-label="Items"><ul class="item-list"><?php foreach ($order['items'] as $line): ?><li><?= (int) $line['qty'] ?> × <?= e($line['name']) ?><small><?= e(peso($line['total'])) ?></small></li><?php endforeach; ?></ul></td>
 <td data-label="Total"><strong><?= e(peso($order['total'])) ?></strong></td>
 <td data-label="Status"><span class="<?= e(status_class($order['status'])) ?>"><?= e($order['status']) ?></span></td>
+<?php /*
+   Payment column: Paid with a receipt link, Unpaid with a Take payment button, or a dash for cancelled
+   orders.
+*/ ?>
 <td data-label="Payment">
 <?php if ($pay): ?>
 <div class="pay-cell"><span class="badge badge-paid">Paid · <?= e($pay['method']) ?></span><a class="btn-sm" href="<?= e(url('pages/receipt.php?ref=' . $order['ref'])) ?>">Receipt</a></div>
@@ -123,6 +145,10 @@ require __DIR__ . "/../includes/header.php";
 </td>
 <td data-label="Taken by"><?= e($order['taken_by'] ?? 'Online (customer)') ?></td>
 <td data-label="Placed"><?= e(date('M j, g:i A', strtotime($order['created_at']))) ?></td>
+<?php /*
+   Status update: the drop-down only offers the allowed next statuses. Cancelling asks for confirmation
+   (data-confirm).
+*/ ?>
 <td data-label="Update">
 <?php if ($next): ?>
 <form class="status-form" method="post" action="<?= e(url('actions/update_transaction.php')) ?>" data-confirm="Cancel order <?= e($order['ref']) ?>? This cannot be undone." data-confirm-value="Cancelled">
@@ -138,6 +164,7 @@ require __DIR__ . "/../includes/header.php";
 </tr>
 <?php endforeach; ?>
 </tbody></table></div>
+<?php /* Pagination links. */ ?>
 <?php if ($list['pages'] > 1): ?>
 <div class="filter-actions">
 <?php if ($list['page'] > 1): ?><a class="btn-sm" href="<?= e($page_url($list['page'] - 1)) ?>">← Newer</a><?php endif; ?>

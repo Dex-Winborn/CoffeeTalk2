@@ -1,8 +1,10 @@
 <?php
+// Saves the payment for an order (cash, QR or card) in the payments table, then shows the receipt.
 require_once __DIR__ . "/../includes/validation.php";
 require_login();
 require_post("pages/transactions.php");
 
+// The order reference must look like CT-20261102-0001.
 $ref = post_string("order_ref");
 if (!preg_match('/^CT-\d{8}-\d+$/', $ref)) {
     flash_set("error", "Invalid order reference.");
@@ -10,6 +12,7 @@ if (!preg_match('/^CT-\d{8}-\d+$/', $ref)) {
 }
 $payment_page = "pages/payment.php?ref=" . $ref;
 
+// Load the order. The amount due comes from the database, never from the form.
 $order = fetch_order($ref);
 if (!$order) {
     flash_set("error", "That order was not found.");
@@ -22,11 +25,13 @@ if ($order["status"] === "Cancelled") {
     redirect("pages/transactions.php");
 }
 
+// The payment method must be Cash, QR or Card.
 $method = post_string("method");
 if (!in_array($method, PAYMENT_METHODS, true)) {
     flash_set("error", "Please choose a payment method.");
     redirect($payment_page);
 }
+// Optional reference or approval number (used for QR and card payments).
 $reference_no = post_string("reference_no");
 if (mb_strlen($reference_no) > 40) {
     old_set($_POST);
@@ -34,6 +39,8 @@ if (mb_strlen($reference_no) > 40) {
     redirect($payment_page);
 }
 
+// Cash must be at least the total, and the change is calculated here on the server. QR and card pay
+// the exact amount.
 $due = round($order["total"], 2);
 $received = $due;
 $change = 0.0;
@@ -49,6 +56,7 @@ if ($method === "Cash") {
     $reference_no = "";
 }
 
+// Save the payment. received_by records which staff member took it.
 try {
     $user_id = current_user()["id"];
     $stmt = db()->prepare("INSERT INTO payments(order_ref,method,amount_due,amount_received,change_given,reference_no,received_by) VALUES(?,?,?,?,?,?,?)");

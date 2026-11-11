@@ -1,10 +1,15 @@
 <?php
+// Step 2 of password recovery: opened from the emailed link, lets the user choose a new password.
 require_once __DIR__ . "/../includes/validation.php";
 if (is_logged_in()) redirect(is_admin() ? "pages/admin_dashboard.php" : "pages/dashboard.php");
 
+// The token comes from the link (GET) or from the submitted form (POST). It must be 64 hexadecimal
+// characters.
 $token = isset($_GET["token"]) && is_string($_GET["token"]) ? $_GET["token"] : (isset($_POST["token"]) && is_string($_POST["token"]) ? $_POST["token"] : "");
 $validToken = preg_match('/^[a-f0-9]{64}$/', $token) === 1;
 $userId = 0;
+// Look for a matching token that has not expired. Only the hash is stored, so the token from the link
+// is hashed first.
 if ($validToken) {
     $tokenHash = hash("sha256", $token);
     $stmt = db()->prepare("SELECT user_id FROM password_reset_tokens WHERE token_hash = ? AND expires_at > NOW() LIMIT 1");
@@ -15,6 +20,7 @@ if ($validToken) {
     if ($row) $userId = (int) $row["user_id"];
 }
 
+// Form submitted: check the CSRF token, the link, the password rules and the confirmation.
 $errors = [];
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_post("auth/forgot_password.php");
@@ -23,6 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!$userId) $errors[] = "This password-reset link is invalid or has expired. Request a new one.";
     if (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) $errors[] = "Password must be at least 8 characters and include a letter and a number.";
     if ($password !== $confirm) $errors[] = "Password and confirmation do not match.";
+    // Save the new password hash and delete the used token in one transaction, so the link cannot be
+    // used twice.
     if (!$errors) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $conn = db();
@@ -46,6 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+// Page settings, then the shared header. The form is shown only when the link is valid.
 $pageTitle = "Set a new password — Coffee Talk";
 $bodyClass = "app-body login-page";
 $activePage = "reset-password";

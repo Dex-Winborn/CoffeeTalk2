@@ -1,4 +1,5 @@
 <?php
+// Digital receipt for a paid order. The button can print it or save it as PDF (js/receipt.js).
 require_once __DIR__ . "/../includes/functions.php";
 require_login();
 
@@ -8,6 +9,7 @@ if (!preg_match('/^CT-\d{8}-\d+$/', $ref)) {
     redirect("pages/transactions.php");
 }
 
+// Load the order and its payment. An unpaid order is sent to the payment page.
 $order = fetch_order($ref);
 if (!$order) {
     flash_set("error", "That order was not found.");
@@ -20,6 +22,8 @@ if (!$payment) {
     redirect("pages/payment.php?ref=" . $ref);
 }
 
+// Cash receipts show the amount received and the change. QR and card receipts show the reference
+// number.
 $is_cash = $payment["method"] === "Cash";
 $method_label = $is_cash ? "Cash" : "Cashless · " . $payment["method"];
 
@@ -30,6 +34,7 @@ require __DIR__ . "/../includes/header.php";
 ?>
 <main class="app-main"><div class="app-wrap app-wrap-narrow">
 <div class="no-print"><?= flash_render() ?></div>
+<?php /* The receipt itself. Elements with the no-print class are hidden when printing. */ ?>
 <article class="receipt" id="receipt">
 <header class="receipt-head"><h1>Coffee Talk</h1><p>Elfa Building, 2nd Floor · Chipeco Avenue<br />Calamba City, Laguna</p><p class="receipt-title">DIGITAL RECEIPT</p></header>
 <dl class="receipt-meta">

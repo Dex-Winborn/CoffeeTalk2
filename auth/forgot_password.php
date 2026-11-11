@@ -1,9 +1,14 @@
 <?php
+// Step 1 of password recovery: the user types their email and receives a reset link.
 require_once __DIR__ . "/../includes/validation.php";
+// A user who is logged in does not need this page.
 if (is_logged_in()) redirect(is_admin() ? "pages/admin_dashboard.php" : "pages/dashboard.php");
 
+// $sent switches the page to the confirmation message. $localResetUrl is only filled in on localhost
+// when email is not set up.
 $sent = false;
 $localResetUrl = "";
+// The form was submitted.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_post("auth/forgot_password.php");
     $email = post_string("email");
@@ -16,11 +21,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute();
         $account = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+        // Account found: create a random token.
         if ($account) {
+            // The token goes in the emailed link. Only its SHA-256 hash is saved in MySQL, so a leaked
+            // database cannot be used to reset passwords.
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash("sha256", $token);
             $userId = (int) $account["id"];
             $conn = db();
+            // Delete the user's older tokens and save the new one (valid for 1 hour) in one
+            // transaction.
             $conn->begin_transaction();
             try {
                 $delete = $conn->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?");
@@ -33,12 +43,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $insert->close();
                 $conn->commit();
 
-                $resetUrl = rtrim(APP_BASE_URL, "/") . "/auth/reset_password.php?token=" . rawurlencode($token);
+                // Build the link and try to email it. XAMPP usually has no mail server, so mail() may
+                // fail.
+                $resetUrl = app_base_url() . "/auth/reset_password.php?token=" . rawurlencode($token);
                 $subject = "Coffee Talk password reset";
                 $message = "Hello " . $account["full_name"] . ",\n\nUse this link within one hour to set a new Coffee Talk password:\n" . $resetUrl . "\n\nIf you did not request this, you can ignore this email.";
                 $headers = "From: Coffee Talk <no-reply@localhost>\r\n";
                 $mailSent = @mail($account["email"], $subject, $message, $headers);
-                $baseHost = strtolower((string) parse_url(APP_BASE_URL, PHP_URL_HOST));
+                // If the email could not be sent and the request comes from the same computer, show
+                // the link on the page so the feature can still be demonstrated.
+                $baseHost = strtolower((string) parse_url(app_base_url(), PHP_URL_HOST));
                 $remoteHost = strtolower((string) ($_SERVER["REMOTE_ADDR"] ?? ""));
                 $isLocalRequest = in_array($baseHost, ["localhost", "127.0.0.1", "::1"], true)
                   && in_array($remoteHost, ["localhost", "127.0.0.1", "::1"], true);
@@ -51,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $sent = true;
     }
 }
+// Page settings, then the shared header.
 $pageTitle = "Forgot password — Coffee Talk";
 $bodyClass = "app-body login-page";
 $activePage = "forgot-password";

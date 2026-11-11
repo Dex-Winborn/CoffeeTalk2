@@ -1,5 +1,7 @@
 <?php
 /** Staff-entered order from pages/transactions.php; continues to the payment page. */
+// Creates the order (the transaction) in MySQL. Steps: check login and CSRF token, validate,
+// create_order(), then open the payment page.
 require_once __DIR__ . "/../includes/validation.php";
 require_login();
 require_post("pages/transactions.php");
@@ -25,6 +27,7 @@ if ($order === null) {
     redirect("pages/transactions.php");
 }
 
+// Builds a short message such as 2 × Latte for the success alert.
 $summary = [];
 foreach ($order["items"] as $item) {
     $summary[] = $item["quantity"] . " × " . $item["name"];

@@ -1,3 +1,12 @@
+/*
+ * Stylesheet for the whole system (home page, login, dashboards, menu items, orders, payment and
+ * receipt).
+ * How it is organized: the first part styles the home page, then comes the staff and ordering screens,
+ * then responsive rules for phones and tablets.
+ * The later sections adjust colors and backgrounds, so when two rules match the same element, the one
+ * lower in the file wins.
+ * Colors and fonts are defined once below as variables and used everywhere with var(--name).
+ */
 :root {
   --ink: #001c23;
   --ink-soft: #00343d;
@@ -40,6 +49,7 @@ a {
 button {
   font: inherit;
 }
+/* Announcement bar above the navigation */
 .announcement {
   padding: 10px 20px;
   background: var(--ink);
@@ -52,6 +62,7 @@ button {
 .announcement span {
   color: #fd8912;
 }
+/* Navigation bar */
 .site-header {
   position: sticky;
   z-index: 10;
@@ -95,6 +106,7 @@ button {
   color: var(--orange);
 }
 .nav-cta,
+/* Main buttons */
 .button {
   display: inline-flex;
   align-items: center;
@@ -124,6 +136,7 @@ button {
   width: 15px;
   height: 15px;
 }
+/* Menu button shown on phones */
 .menu-toggle {
   display: none;
   border: 0;
@@ -136,6 +149,7 @@ button {
   width: 25px;
   height: 25px;
 }
+/* Home page: hero */
 .hero {
   width: min(1240px, calc(100% - 64px));
   min-height: 630px;
@@ -255,6 +269,7 @@ h1 em {
 .avatar:nth-child(3) {
   background: #cd5305;
 }
+/* Home page: scrolling text strip */
 .ticker {
   overflow: hidden;
   padding: 17px 0;
@@ -274,11 +289,13 @@ h1 em {
   color: #fd8912;
   font-size: 12px;
 }
+/* Scroll animation of the ticker */
 @keyframes ticker {
   to {
     transform: translateX(-50%);
   }
 }
+/* Home page: sections */
 .section {
   padding: 105px 32px;
 }
@@ -295,6 +312,7 @@ h1 em {
   letter-spacing: -0.05em;
   line-height: 1.08;
 }
+/* Home page: menu section */
 .menu-section {
   background: var(--cream);
   box-shadow:
@@ -404,6 +422,7 @@ h1 em {
 .menu-addons h3 {
   margin-bottom: 16px;
 }
+/* Tablet and phone layout (first set of rules; more follow later in the file) */
 @media (max-width: 900px) {
   .full-menu {
     grid-template-columns: 1fr 1fr;
@@ -440,6 +459,7 @@ h1 em {
   letter-spacing: -0.05em;
   line-height: 1.08;
 }
+/* Home page: featured dishes */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -482,6 +502,7 @@ h1 em {
   font-size: 13px;
   line-height: 1.75;
 }
+/* Home page: the space and its amenities */
 .space-section {
   display: grid;
   grid-template-columns: 1.02fr 0.98fr;
@@ -535,6 +556,7 @@ h1 em {
   background: var(--ink);
   color: white;
 }
+/* Home page: address and map */
 .visit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -613,6 +635,7 @@ h1 em {
   font-family: var(--serif);
   font-size: 17px;
 }
+/* Footer */
 .footer {
   padding: 25px 32px;
   background: #00161c;
@@ -759,6 +782,10 @@ h1 em {
   }
 }
 
+/*
+ * Everything from here down to the responsive rules styles the logged-in system and the public order
+ * page.
+ */
 /* Café management and online ordering screens — matched to the landing page. */
 [hidden] {
   display: none !important;
@@ -820,6 +847,7 @@ h1 em {
   flex: 0 0 auto;
 }
 .panel,
+/* Login and register card */
 .auth-card {
   margin: 22px 0;
   padding: 27px;
@@ -871,6 +899,7 @@ h1 em {
   color: var(--orange);
   font-weight: 700;
 }
+/* Form fields, labels and error messages */
 .field {
   min-width: 0;
   margin: 0 0 17px;
@@ -937,6 +966,7 @@ h1 em {
   margin-top: 4px;
   cursor: pointer;
 }
+/* Flash message boxes (success and error) */
 .alert {
   margin: 16px 0;
   padding: 13px 15px;
@@ -958,6 +988,7 @@ h1 em {
   margin: 7px 0 0;
   padding-left: 21px;
 }
+/* Dashboard counter cards */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -982,6 +1013,7 @@ h1 em {
   font-family: var(--serif);
   font-size: clamp(26px, 3vw, 38px);
 }
+/* Dashboard shortcut cards */
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1010,6 +1042,7 @@ h1 em {
 .quick-card .text-link {
   color: var(--orange);
 }
+/* Search and filter bar above the tables */
 .filter-bar {
   display: grid;
   grid-template-columns:
@@ -1044,6 +1077,7 @@ h1 em {
 .filter-actions .button {
   cursor: pointer;
 }
+/* Data tables (menu items and orders). The wrapper scrolls sideways on small screens. */
 .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -1086,6 +1120,7 @@ h1 em {
 .row-actions form {
   margin: 0;
 }
+/* Small buttons inside tables (Edit, Delete, Restore, Update) */
 .btn-sm {
   display: inline-flex;
   min-height: 33px;
@@ -1106,6 +1141,7 @@ h1 em {
   border-color: rgba(255, 142, 114, 0.6);
   color: #ffb39e;
 }
+/* Status badges (Pending, Preparing, Served, Cancelled, Active, Paid...) */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1154,6 +1190,7 @@ h1 em {
   text-align: center;
   line-height: 1.65;
 }
+/* New order form on the Orders page */
 .order-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1231,6 +1268,7 @@ h1 em {
   color: var(--orange);
   font-size: 19px;
 }
+/* Payment page: method cards, cash fields and change box */
 .pay-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1291,6 +1329,7 @@ h1 em {
 .change-box.is-short strong {
   color: #ffd2c5;
 }
+/* Receipt */
 .receipt {
   padding: 34px;
   background: #fffaf1;
@@ -1389,6 +1428,7 @@ h1 em {
 .public-order-form .public-menu-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+/* Public order menu: item rows with quantity boxes */
 .public-menu-item {
   display: flex;
   align-items: center;
@@ -1444,6 +1484,7 @@ h1 em {
 .order-customer .field {
   margin: 0;
 }
+/* Message shown after a customer order is placed */
 .order-success {
   display: flex;
   align-items: center;
@@ -1587,6 +1628,7 @@ h1 em {
     font-size: 10px;
   }
 }
+/* Printing: hide the header, footer and buttons so only the receipt is printed */
 @media print {
   body {
     background: #fff !important;
@@ -1614,6 +1656,7 @@ h1 em {
   }
 }
 
+/* Turns off animations and smooth scrolling for visitors who prefer less motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1719,6 +1762,7 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
+/* Tablet layout */
 @media (min-width: 801px) and (max-width: 1100px) {
   .nav-wrap {
     width: calc(100% - 48px);
@@ -4407,4 +4451,34 @@ svg {
   inset: 0 !important;
   width: 100% !important;
   transform: none !important;
+}
+
+/* Mobile dropdown: same teal as the header, cream links, on every page type. */
+@media (max-width: 800px) {
+  .nav-links,
+  body.app-body .nav-links,
+  body.order-page .nav-links,
+  body.login-page .nav-links {
+    background: #002832 !important;
+    border-bottom: 1px solid rgba(253, 233, 206, 0.22) !important;
+  }
+  .nav-links > a:not(.nav-cta),
+  body .nav-links > a:not(.nav-cta),
+  body.app-body .nav-links > a:not(.nav-cta),
+  body.order-page .nav-links > a:not(.nav-cta),
+  body.login-page .nav-links > a:not(.nav-cta) {
+    color: #fde9ce !important;
+    border-bottom: 1px solid rgba(253, 233, 206, 0.12);
+  }
+  body .nav-links > a.is-active:not(.nav-cta) {
+    color: #fd8912 !important;
+  }
+}
+
+/* Error text and red border for quantity fields on the public order page. */
+.public-menu-item .field-error {
+  margin: 5px 0 0;
+}
+.qty-label input.has-error {
+  border-color: #ff8e72 !important;
 }

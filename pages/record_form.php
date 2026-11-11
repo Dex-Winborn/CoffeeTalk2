@@ -1,11 +1,15 @@
 <?php
+// One form used for both CREATE and UPDATE of menu items. With ?id=... it loads the saved item and
+// edits it. Without it, the form is empty and adds a new item.
 require_once __DIR__ . "/../includes/functions.php";
 require_login();
 
+// Edit mode when a valid id is in the link.
 $id = filter_var($_GET["id"] ?? "", FILTER_VALIDATE_INT);
 $is_edit = $id !== false && $id > 0;
 $values = ["name" => "", "category" => MENU_CATEGORIES[0], "description" => "", "price" => ""];
 
+// Load the saved values from MySQL.
 if ($is_edit) {
     $stmt = db()->prepare("SELECT name,category,description,price FROM menu_items WHERE id=?");
     $stmt->bind_param("i", $id);
@@ -30,6 +34,7 @@ foreach (old_get() as $key => $old_value) {
     if (isset($values[$key]) && is_string($old_value)) $values[$key] = $old_value;
 }
 
+// The form posts to a different action file in each mode.
 $action = $is_edit ? "actions/update_record.php" : "actions/add_record.php";
 $pageTitle = ($is_edit ? "Edit menu item" : "Add menu item") . " — Coffee Talk";
 $activePage = "records";
@@ -40,6 +45,7 @@ require __DIR__ . "/../includes/header.php";
 <?= flash_render() ?>
 <div class="app-head"><div><div class="eyebrow"><?= $is_edit ? 'Update record' : 'Create record' ?></div><h1 class="app-title"><?= $is_edit ? 'Edit menu item' : 'Add menu item' ?></h1></div></div>
 <section class="panel">
+<?php /* The hidden id is only sent in edit mode. data-validate turns on the checks in js/validation.js. */ ?>
 <form method="post" action="<?= e(url($action)) ?>" data-validate novalidate>
 <?= csrf_field() ?>
 <?php if ($is_edit): ?><input type="hidden" name="id" value="<?= (int) $id ?>" /><?php endif; ?>

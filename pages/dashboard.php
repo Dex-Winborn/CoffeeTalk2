@@ -1,4 +1,6 @@
 <?php
+// Staff dashboard: counters for today and the most recent orders. A visitor who is not logged in is
+// sent to the login page by require_login().
 require_once __DIR__ . "/../includes/functions.php";
 require_login();
 
@@ -10,19 +12,23 @@ $stats = db()->query("SELECT
         (SELECT COUNT(*) FROM orders WHERE created_at >= CURDATE()) AS orders_today,
         (SELECT COUNT(*) FROM orders WHERE status IN ('Pending','Preparing')) AS open_orders,
         (SELECT COALESCE(SUM(amount_due),0) FROM payments WHERE paid_at >= CURDATE()) AS sales")->fetch_assoc();
+// The last 6 orders, shown in the table below.
 $recent = fetch_recent_orders(6);
+// First word of the full name, used in the greeting.
 $first_name = explode(" ", trim($user["full_name"]))[0] ?: $user["username"];
 
 $pageTitle = "Staff Dashboard — Coffee Talk";
 $activePage = "dashboard";
 require __DIR__ . "/../includes/header.php";
 ?>
+<?php /* Dashboard content. */ ?>
 <main class="app-main"><div class="app-wrap">
 <?= flash_render() ?>
 <div class="app-head">
 <div><div class="eyebrow">Coffee Talk Café System</div><h1 class="app-title">Staff Dashboard</h1><p class="app-lead">Hello, <?= e($first_name) ?>. Signed in as <strong><?= e($user['username']) ?></strong>. Here is what is happening at the café.</p></div>
 <div class="app-head-actions"><a class="button" href="<?= e(url('pages/transactions.php')) ?>">Take an order</a></div>
 </div>
+<?php /* Counter cards: active items, orders today, open orders and money collected today. */ ?>
 <div class="stat-grid">
 <div class="stat-card"><span class="stat-label">Active menu items</span><strong class="stat-value"><?= (int) $stats['items'] ?></strong><small><?= (int) $stats['inactive'] ?> inactive</small></div>
 <div class="stat-card"><span class="stat-label">Orders today</span><strong class="stat-value"><?= (int) $stats['orders_today'] ?></strong><small>Since midnight</small></div>
@@ -34,12 +40,14 @@ require __DIR__ . "/../includes/header.php";
 <a class="quick-card" href="<?= e(url('pages/transactions.php')) ?>"><h2>Orders</h2><p>Take orders, process payment and move them through service.</p><span class="text-link">Manage orders →</span></a>
 <a class="quick-card" href="<?= e(url('pages/menu.php')) ?>"><h2>Public order menu</h2><p>See the live menu and place a customer order.</p><span class="text-link">View ordering →</span></a>
 </div>
+<?php /* Table of the recent orders. The data-label attributes are used by the phone layout in the CSS. */ ?>
 <section class="panel">
 <div class="panel-head"><h2>Recent orders</h2><a class="text-link" href="<?= e(url('pages/transactions.php')) ?>">All orders →</a></div>
 <?php if ($recent): ?>
 <div class="table-wrap"><table class="data-table">
 <thead><tr><th>Reference</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
 <tbody>
+<?php /* One table row per order. e() escapes every value. */ ?>
 <?php foreach ($recent as $row): ?>
 <tr>
 <td data-label="Reference"><?= e($row['ref']) ?></td>
