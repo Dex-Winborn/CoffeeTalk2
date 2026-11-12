@@ -29,29 +29,8 @@ $received_value = is_string($old["amount_received"] ?? null) ? $old["amount_rece
 $total = round($order["total"], 2);
 $total_input = number_format($total, 2, ".", "");
 
-// Process items: group addons with their parent items (same as receipt.php)
-$processed_items = [];
-$current_main = null;
-foreach ($order['items'] as $line) {
-    $is_addon = strtolower($line['category']) === 'add-ons';
-    if ($is_addon) {
-        if ($current_main !== null) {
-            $current_main['addons'][] = $line;
-        } else {
-            // Orphan addon, treat as regular item
-            $processed_items[] = $line;
-        }
-    } else {
-        if ($current_main !== null) {
-            $processed_items[] = $current_main;
-        }
-        $current_main = $line;
-        $current_main['addons'] = [];
-    }
-}
-if ($current_main !== null) {
-    $processed_items[] = $current_main;
-}
+// Group add-ons under the main item they belong to (shared with the dashboard and receipts).
+$processed_items = group_items_with_addons($order['items']);
 
 $pageTitle = "Payment — Coffee Talk";
 $activePage = "transactions";

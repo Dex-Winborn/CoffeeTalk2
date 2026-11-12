@@ -23,7 +23,7 @@ if ($validToken) {
 // Form submitted: check the CSRF token, the link, the password rules and the confirmation.
 $errors = [];
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    require_post("auth/forgot_password.php");
+    require_post("auth/reset_password.php");
     $password = is_string($_POST["password"] ?? null) ? $_POST["password"] : "";
     $confirm = is_string($_POST["confirm_password"] ?? null) ? $_POST["confirm_password"] : "";
     if (!$userId) $errors[] = "This password-reset link is invalid or has expired. Request a new one.";

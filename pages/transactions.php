@@ -185,7 +185,7 @@ if ($pay) $next = array_values(array_diff($next, ["Cancelled"]));
 <tr>
 <td data-label="Reference"><?= e($order['ref']) ?></td>
 <td data-label="Customer"><?= e($order['customer_name']) ?><?php if ($order['notes'] !== ''): ?><small class="cell-note"><?= e($order['notes']) ?></small><?php endif; ?></td>
-<td data-label="Items"><ul class="item-list"><?php foreach ($order['items'] as $line): ?><li><?= (int) $line['qty'] ?> × <?= e($line['name']) ?><small><?= e(peso($line['total'])) ?></small></li><?php endforeach; ?></ul></td>
+<td data-label="Items"><ul class="item-list"><?php foreach (group_items_with_addons($order['items']) as $line): ?><?php $line_total = $line['total'] + array_sum(array_column($line['addons'], 'total')); ?><li><?= (int) $line['qty'] ?> × <?= e($line['name']) ?><small><?= e(peso($line_total)) ?></small><?php if (!empty($line['addons'])): ?><ul class="item-addon-list"><?php foreach ($line['addons'] as $addon): ?><li>+ <?= e($addon['name']) ?> ×<?= (int) $addon['qty'] ?></li><?php endforeach; ?></ul><?php endif; ?></li><?php endforeach; ?></ul></td>
 <td data-label="Total"><strong><?= e(peso($order['total'])) ?></strong></td>
 <td data-label="Status"><span class="<?= e(status_class($order['status'])) ?>"><?= e($order['status']) ?></span></td>
 <?php /*

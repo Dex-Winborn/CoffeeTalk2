@@ -53,3 +53,18 @@ document.addEventListener("click", function(e) {
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 });
+
+// Back-to-top button (index.php): show it after the visitor scrolls down, and jump to the top on
+// click. The smooth scroll comes from the html { scroll-behavior: smooth } rule.
+const backToTop = document.querySelector(".back-to-top");
+if (backToTop) {
+  const toggleBackToTop = () => {
+    backToTop.classList.toggle("is-visible", window.scrollY > 400);
+  };
+  window.addEventListener("scroll", toggleBackToTop, { passive: true });
+  backToTop.addEventListener("click", (event) => {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  toggleBackToTop();
+}

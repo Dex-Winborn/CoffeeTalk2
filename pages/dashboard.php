@@ -52,7 +52,7 @@ require __DIR__ . "/../includes/header.php";
 <tr>
 <td data-label="Reference"><?= e($row['ref']) ?></td>
 <td data-label="Customer"><?= e($row['customer_name']) ?></td>
-<td data-label="Items"><ul class="item-list"><?php foreach ($row['items'] as $line): ?><li><?= (int) $line['qty'] ?> × <?= e($line['name']) ?></li><?php endforeach; ?></ul></td>
+<td data-label="Items"><ul class="item-list"><?php foreach (group_items_with_addons($row['items']) as $line): ?><li><?= (int) $line['qty'] ?> × <?= e($line['name']) ?><?php if (!empty($line['addons'])): ?><ul class="item-addon-list"><?php foreach ($line['addons'] as $addon): ?><li>+ <?= e($addon['name']) ?> ×<?= (int) $addon['qty'] ?></li><?php endforeach; ?></ul><?php endif; ?></li><?php endforeach; ?></ul></td>
 <td data-label="Total"><strong><?= e(peso($row['total'])) ?></strong></td>
 <td data-label="Status"><span class="<?= e(status_class($row['status'])) ?>"><?= e($row['status']) ?></span></td>
 <td data-label="Placed"><?= e(date('M j, g:i A', strtotime($row['created_at']))) ?></td>

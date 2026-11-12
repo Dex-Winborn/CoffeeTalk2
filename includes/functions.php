@@ -100,6 +100,29 @@ function group_orders(array $rows): array
     }
     return array_values($groups);
 }
+/**
+ * Groups an order's item lines so each add-on sits under the main item it was ordered with.
+ * Add-ons are the lines whose category is "Add-ons"; each is attached to the most recent main item.
+ * An add-on that appears before any main item is kept as its own entry.
+ * Returns the lines in order, each with an "addons" array.
+ */
+function group_items_with_addons(array $items): array
+{
+    $processed = [];
+    $current = null;
+    foreach ($items as $line) {
+        if (strtolower($line["category"] ?? "") === "add-ons") {
+            if ($current !== null) $current["addons"][] = $line;
+            else { $line["addons"] = []; $processed[] = $line; }
+            continue;
+        }
+        if ($current !== null) $processed[] = $current;
+        $current = $line;
+        $current["addons"] = [];
+    }
+    if ($current !== null) $processed[] = $current;
+    return $processed;
+}
 // Loads one order (all of its item rows) by its base reference. Returns null when it is not found.
 function fetch_order(string $baseRef): ?array
 {
@@ -355,7 +378,7 @@ function fetch_orders_by_refs(array $refs): array
     $marks = implode(",", array_fill(0, count($refs), "?"));
     // SUBSTRING_INDEX(order_ref,'-',3) keeps the first three parts (CT, date, number), which is the
     // base reference of an order.
-    $stmt = db()->prepare("SELECT o.order_ref, o.customer_name, o.quantity, o.unit_price, o.total_amount, o.status, o.notes, o.created_at, m.name AS item_name, u.full_name AS taken_by FROM orders o JOIN menu_items m ON m.id=o.item_id LEFT JOIN users u ON u.id=o.user_id WHERE SUBSTRING_INDEX(o.order_ref,'-',3) IN ($marks) ORDER BY o.id DESC");
+    $stmt = db()->prepare("SELECT o.order_ref, o.customer_name, o.quantity, o.unit_price, o.total_amount, o.status, o.notes, o.created_at, m.name AS item_name, m.category AS item_category, u.full_name AS taken_by FROM orders o JOIN menu_items m ON m.id=o.item_id LEFT JOIN users u ON u.id=o.user_id WHERE SUBSTRING_INDEX(o.order_ref,'-',3) IN ($marks) ORDER BY o.id DESC");
     $stmt->bind_param(str_repeat("s", count($refs)), ...$refs);
     $stmt->execute();
     $orders = group_orders($stmt->get_result()->fetch_all(MYSQLI_ASSOC));

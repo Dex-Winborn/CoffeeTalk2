@@ -25,6 +25,17 @@ foreach ($items as $item) $groups[$item["category"]][] = $item;
 $addon_items = $groups["Add-ons"] ?? [];
 unset($groups["Add-ons"]);
 
+// Order the sections by the menu's defined type order (MENU_CATEGORIES) instead of alphabetically.
+$ordered_groups = [];
+foreach (MENU_CATEGORIES as $menu_category) {
+    if (isset($groups[$menu_category])) $ordered_groups[$menu_category] = $groups[$menu_category];
+}
+// Keep any category not in the predefined list, in its original order, at the end.
+foreach ($groups as $menu_category => $category_items) {
+    if (!isset($ordered_groups[$menu_category])) $ordered_groups[$menu_category] = $category_items;
+}
+$groups = $ordered_groups;
+
 // Build addon options HTML for JavaScript
 $addon_options = '';
 if ($addon_items) {
@@ -58,24 +69,65 @@ require __DIR__ . "/../includes/header.php";
 <?= csrf_field() ?>
 
 <?php if ($groups): ?>
-<div class="flash-menu-grid" role="list">
 <?php foreach ($groups as $category => $category_items): ?>
+<section class="flash-menu-section">
+<h2 class="flash-menu-section-title"><?= e($category) ?></h2>
+<div class="flash-menu-grid" role="list">
 <?php foreach ($category_items as $item): ?>
 <?php
-// Use a placeholder image based on category
-$img_map = [
-    'Coffee (Iced / Hot)' => 'images/lobby.jpg',
-    'Premium Coffee' => 'images/lobby.jpg',
-    'Non-Coffee' => 'images/egg-brulee.jpg',
-    'Wellness Blend (Iced)' => 'images/egg-brulee.jpg',
-    'Wellness Blend (Hot)' => 'images/egg-brulee.jpg',
-    'Chill Blend (Frappe)' => 'images/egg-brulee.jpg',
-    'Snack' => 'images/pasta.jpg',
-    'Pasta' => 'images/pasta.jpg',
-    'Classic Croffle' => 'images/egg-brulee.jpg',
-    'Premium Croffle' => 'images/egg-brulee.jpg',
+// One image per menu item, matched to the photos in images/. Falls back to the logo when an item has
+// no dedicated photo (e.g. add-ons).
+$item_images = [
+    1  => 'images/10-Iced-Americano.webp',
+    2  => 'images/12-Iced-Caffe-Latte.webp',
+    3  => 'images/14-Iced-Spanish-Latte.webp',
+    4  => 'images/16-Iced-Mocha.webp',
+    5  => 'images/18-Iced-White-Mocha.webp',
+    6  => 'images/20-Iced-Caramel-Latte.webp',
+    7  => 'images/22-Iced-Salted-Caramel-Latte.webp',
+    8  => 'images/24-Iced-Caramel-Macchiato.webp',
+    9  => 'images/26-Iced-Hazelnut-Latte.webp',
+    10 => 'images/28-Iced-Vanilla-Latte.webp',
+    11 => 'images/37-CT-Signature-Blend.webp',
+    12 => 'images/38-Sea-Salt-Creme-Latte.webp',
+    13 => 'images/39-Tres-Leches.webp',
+    14 => 'images/40-Popcorn-Oat-Latte.webp',
+    15 => 'images/41-Biscoff-Cloud-Latte.webp',
+    16 => 'images/logo.png',
+    17 => 'images/logo.png',
+    18 => 'images/logo.png',
+    19 => 'images/30-Matcha-Latte.webp',
+    20 => 'images/31-Sea-Salt-Matcha.webp',
+    21 => 'images/32-Chocolate-Latte.webp',
+    22 => 'images/33-Strawberry-Latte.webp',
+    23 => 'images/34-Strawberry-Matcha.webp',
+    24 => 'images/52-Apple-Chamomile-Iced.webp',
+    25 => 'images/53-Passion-Fruit-Burst.webp',
+    26 => 'images/54-Green-Apple-Twist.webp',
+    27 => 'images/55-Lychee-Fizz.webp',
+    28 => 'images/50-Classic-Wellness-Tea.webp',
+    29 => 'images/51-Apple-Chamomile-Hot.webp',
+    30 => 'images/01-Double-Choco-Chip.webp',
+    31 => 'images/02-Oreo-CB.webp',
+    32 => 'images/03-Matcha-CB.webp',
+    33 => 'images/04-Strawberry-CB.webp',
+    34 => 'images/05-Biscoff-CB.webp',
+    35 => 'images/06-Java-Chip-CB.webp',
+    36 => 'images/47-Flavored-Fries.webp',
+    37 => 'images/48-Cheezy-Nachos.webp',
+    38 => 'images/49-Twister-Fries.webp',
+    39 => 'images/35-Beef-Lasagna.webp',
+    40 => 'images/36-Creamy-Carbonara.webp',
+    41 => 'images/07-Classic-Croffle.webp',
+    42 => 'images/08-Classic-Cinnamon.webp',
+    43 => 'images/09-Classic-Choco.webp',
+    44 => 'images/42-Berry-Delight.webp',
+    45 => 'images/43-Nutella-Alcapone.webp',
+    46 => 'images/44-Oreo-Craze.webp',
+    47 => 'images/45-Biscoff-Crunch.webp',
+    48 => 'images/46-Banana-Pudding.webp',
 ];
-$img = $img_map[$category] ?? 'images/logo.png';
+$img = $item_images[(int) $item['id']] ?? 'images/logo.png';
 
 // Categories that can have add-ons (drinks)
 $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non-Coffee', 'Wellness Blend (Iced)', 'Wellness Blend (Hot)', 'Chill Blend (Frappe)']);
@@ -126,8 +178,9 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
 
 </article>
 <?php endforeach; ?>
-<?php endforeach; ?>
 </div>
+</section>
+<?php endforeach; ?>
 <?php endif; ?>
 
 <?php /* Customer name (required) and optional notes. */ ?>

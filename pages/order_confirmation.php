@@ -24,28 +24,8 @@ if ($order["status"] === "Cancelled") {
 $payment = fetch_payment($ref);
 $is_paid = $payment !== null;
 
-// Process items: group addons with their parent items
-$processed_items = [];
-$current_main = null;
-foreach ($order['items'] as $line) {
-    $is_addon = strtolower($line['category']) === 'add-ons';
-    if ($is_addon) {
-        if ($current_main !== null) {
-            $current_main['addons'][] = $line;
-        } else {
-            $processed_items[] = $line;
-        }
-    } else {
-        if ($current_main !== null) {
-            $processed_items[] = $current_main;
-        }
-        $current_main = $line;
-        $current_main['addons'] = [];
-    }
-}
-if ($current_main !== null) {
-    $processed_items[] = $current_main;
-}
+// Group add-ons under the main item they belong to (shared with the dashboard).
+$processed_items = group_items_with_addons($order['items']);
 
 $pageTitle = "Order Confirmation " . $order["ref"] . " — Coffee Talk";
 $bodyClass = "app-body order-page";
@@ -94,11 +74,11 @@ require __DIR__ . "/../includes/header.php";
 ?>
 <tr>
 <td>
-<?= e($line['name']) ?>
+<?= e($line['name']) ?> · <span class="receipt-item-price"><?= e(peso($line['total'])) ?></span>
 <?php if ($line['addons']): ?>
 <div class="receipt-addon-list">
 <?php foreach ($line['addons'] as $addon): ?>
-<div class="receipt-addon-line">+ <?= e($addon['name']) ?> ×<?= (int) $addon['qty'] ?></div>
+<div class="receipt-addon-line">+ <?= e($addon['name']) ?> ×<?= (int) $addon['qty'] ?> · <?= e(peso($addon['total'])) ?></div>
 <?php endforeach; ?>
 </div>
 <?php endif; ?>
