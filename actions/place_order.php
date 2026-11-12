@@ -26,5 +26,5 @@ if ($order === null) {
     redirect("pages/menu.php");
 }
 
-// Success: the menu page shows the order reference.
-redirect("pages/menu.php?placed=" . rawurlencode($order["ref"]));
+// Success: redirect to the customer-facing order confirmation page.
+redirect("pages/order_confirmation.php?ref=" . rawurlencode($order["ref"]));

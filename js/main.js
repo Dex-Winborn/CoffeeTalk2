@@ -31,3 +31,25 @@ const yearElement = document.querySelector("#year");
 if (yearElement) {
   yearElement.textContent = new Date().getFullYear();
 }
+
+// Flash card quantity buttons (public order page)
+document.addEventListener("click", function(e) {
+  const minusBtn = e.target.closest(".flash-qty-minus");
+  const plusBtn = e.target.closest(".flash-qty-plus");
+  
+  if (minusBtn || plusBtn) {
+    const btn = minusBtn || plusBtn;
+    const itemId = btn.dataset.itemId;
+    const input = document.querySelector(".flash-qty-input[name='quantity[" + itemId + "]']");
+    if (!input) return;
+    
+    let value = parseInt(input.value, 10) || 0;
+    if (minusBtn) {
+      value = Math.max(0, value - 1);
+    } else {
+      value = Math.min(20, value + 1);
+    }
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+});

@@ -16,20 +16,43 @@ $order_lines = [];
 if (isset($old["item_id"]) && is_array($old["item_id"])) {
     $old_ids = array_values($old["item_id"]);
     $old_quantities = isset($old["quantity"]) && is_array($old["quantity"]) ? array_values($old["quantity"]) : [];
+    $old_addon_ids = isset($old["addon_id"]) && is_array($old["addon_id"]) ? array_values($old["addon_id"]) : [];
+    $old_addon_quantities = isset($old["addon_quantity"]) && is_array($old["addon_quantity"]) ? array_values($old["addon_quantity"]) : [];
+    $old_addon_parent = isset($old["addon_parent"]) && is_array($old["addon_parent"]) ? array_values($old["addon_parent"]) : [];
+    
     foreach ($old_ids as $index => $old_id) {
         $old_quantity = $old_quantities[$index] ?? null;
         $order_lines[] = [
             "id" => is_string($old_id) ? $old_id : "",
             "qty" => is_string($old_quantity) ? $old_quantity : "1",
+            "addons" => [],
         ];
     }
+    
+    // Attach addons to their parent items
+    foreach ($old_addon_ids as $index => $addon_id) {
+        $parent_idx = isset($old_addon_parent[$index]) ? (int)$old_addon_parent[$index] : -1;
+        if ($parent_idx >= 0 && isset($order_lines[$parent_idx])) {
+            $order_lines[$parent_idx]["addons"][] = [
+                "id" => is_string($addon_id) ? $addon_id : "",
+                "qty" => is_string($old_addon_quantities[$index] ?? null) ? $old_addon_quantities[$index] : "1",
+            ];
+        }
+    }
 }
-if (!$order_lines) $order_lines[] = ["id" => "", "qty" => "1"];
+if (!$order_lines) $order_lines[] = ["id" => "", "qty" => "1", "addons" => []];
 
 // Active menu items grouped by category, for the item drop-downs.
 $menu = [];
+$addons = [];
 $result = $conn->query("SELECT id,name,category,price FROM menu_items WHERE is_active=1 ORDER BY category,name");
-while ($row = $result->fetch_assoc()) $menu[$row["category"]][] = $row;
+while ($row = $result->fetch_assoc()) {
+    if ($row["category"] === "Add-ons") {
+        $addons[] = $row;
+    } else {
+        $menu[$row["category"]][] = $row;
+    }
+}
 
 // Filters
 $q = isset($_GET["q"]) && is_string($_GET["q"]) ? trim($_GET["q"]) : "";
@@ -67,7 +90,7 @@ $page_url = function (int $number) use ($filters): string {
 // Page settings, then the shared header.
 $pageTitle = "Orders — Coffee Talk";
 $activePage = "transactions";
-$extraScripts = ["js/validation.js"];
+$extraScripts = ["js/validation.js", "js/main.js"];
 require __DIR__ . "/../includes/header.php";
 ?>
 <main class="app-main"><div class="app-wrap">
@@ -85,11 +108,46 @@ require __DIR__ . "/../includes/header.php";
 <div class="field"><label for="customer_name">Customer name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" value="<?= e($customer) ?>" /><span class="field-error" aria-live="polite"></span></div>
 <?php /* One row per item (menu item and quantity). */ ?>
 <div class="order-lines" id="order-lines">
-<?php foreach ($order_lines as $line): ?>
-<div class="order-line">
+<?php foreach ($order_lines as $line_index => $line): ?>
+<div class="order-line" data-line-index="<?= $line_index ?>">
+<div class="order-line-main">
 <div class="field"><label>Menu item</label><select name="item_id[]" required><option value="">Choose an item…</option><?php foreach ($menu as $category => $items): ?><optgroup label="<?= e($category) ?>"><?php foreach ($items as $item): ?><option value="<?= (int) $item['id'] ?>" data-price="<?= e($item['price']) ?>"<?= (string) $item['id'] === $line['id'] ? ' selected' : '' ?>><?= e($item['name']) ?> — <?= e(peso($item['price'])) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select><span class="field-error" aria-live="polite"></span></div>
 <div class="field field-qty"><label>Qty</label><input type="number" name="quantity[]" required min="1" max="50" step="1" value="<?= e($line['qty']) ?>" /><span class="field-error" aria-live="polite"></span></div>
 <button class="btn-sm line-remove" type="button" aria-label="Remove item">×</button>
+</div>
+<?php /* Add-on option bar - smaller than the item to indicate it's an option */ ?>
+<div class="addon-bar" data-line-index="<?= $line_index ?>">
+<div class="addon-fields">
+<div class="field addon-select-field"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add add-on</label><select name="addon_id[]" class="addon-select" data-line-index="<?= $line_index ?>"><option value="">Choose an add-on…</option><?php foreach ($addons as $addon): ?><option value="<?= (int) $addon['id'] ?>" data-price="<?= e($addon['price']) ?>"><?= e($addon['name']) ?> — <?= e(peso($addon['price'])) ?></option><?php endforeach; ?></select><span class="field-error" aria-live="polite"></span></div>
+<div class="field field-qty addon-qty-field"><label>Qty</label><input type="number" name="addon_quantity[]" class="addon-qty" value="1" min="1" max="20" /><span class="field-error" aria-live="polite"></span></div>
+<input type="hidden" name="addon_parent[]" value="<?= $line_index ?>" />
+<button type="button" class="addon-add-btn" data-line-index="<?= $line_index ?>">Add</button>
+</div>
+</div>
+<?php if (!empty($line['addons'])): ?>
+<div class="addon-list" data-line-index="<?= $line_index ?>">
+<?php foreach ($line['addons'] as $addon_index => $addon): 
+    // Find addon price from the addons list
+    $addon_price = 0;
+    foreach ($addons as $a) {
+        if ((int) $a['id'] === (int) $addon['id']) {
+            $addon_price = (float) $a['price'];
+            break;
+        }
+    }
+    $addon_line_total = round($addon_price * $addon['qty'], 2);
+?>
+<div class="addon-item" data-addon-index="<?= $addon_index ?>">
+<div class="addon-item-fields">
+<div class="field addon-select-field"><label>Add-on</label><select name="addon_id[]" class="addon-select"><option value="">Choose an add-on…</option><?php foreach ($addons as $a): ?><option value="<?= (int) $a['id'] ?>" data-price="<?= e($a['price']) ?>"<?= (string) $a['id'] === $addon['id'] ? ' selected' : '' ?>><?= e($a['name']) ?> — <?= e(peso($a['price'])) ?></option><?php endforeach; ?></select><span class="field-error" aria-live="polite"></span></div>
+<div class="field field-qty addon-qty-field"><label>Qty</label><input type="number" name="addon_quantity[]" class="addon-qty" value="<?= e($addon['qty']) ?>" min="1" max="20" /><span class="field-error" aria-live="polite"></span></div>
+<input type="hidden" name="addon_parent[]" value="<?= $line_index ?>" />
+</div>
+<button type="button" class="addon-remove-btn" aria-label="Remove add-on" data-line-index="<?= $line_index ?>" data-addon-index="<?= $addon_index ?>">×</button>
+</div>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
 </div>
 <?php endforeach; ?>
 </div>

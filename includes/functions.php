@@ -14,7 +14,7 @@ require_once __DIR__ . "/../config/database.php";
 // Fixed lists used for validation and drop-downs. ORDER_STATUSES and PAYMENT_METHODS must match the
 // ENUM columns in the SQL file.
 const ORDER_STATUSES = ["Pending", "Preparing", "Served", "Cancelled"];
-const PAYMENT_METHODS = ["Cash", "QR", "Card"];
+const PAYMENT_METHODS = ["Cash"];
 // Allowed menu categories. validate_item() rejects any category that is not in this list.
 const MENU_CATEGORIES = [
     "Coffee (Iced / Hot)", "Premium Coffee", "Add-ons", "Non-Coffee",
@@ -94,7 +94,7 @@ function group_orders(array $rows): array
         }
         // Rows arrive newest first, so each item is put at the front to restore the order it was
         // entered in.
-        array_unshift($groups[$base]["items"], ["name" => $row["item_name"], "qty" => (int) $row["quantity"],
+        array_unshift($groups[$base]["items"], ["name" => $row["item_name"], "category" => $row["item_category"] ?? "", "qty" => (int) $row["quantity"],
             "unit" => (float) ($row["unit_price"] ?? 0), "total" => (float) $row["total_amount"]]);
         $groups[$base]["total"] += (float) $row["total_amount"];
     }
@@ -105,7 +105,7 @@ function fetch_order(string $baseRef): ?array
 {
     $like = $baseRef . "-%";
     // Joins orders with menu_items (item names) and users (who took the order).
-    $stmt = db()->prepare("SELECT o.order_ref, o.customer_name, o.quantity, o.unit_price, o.total_amount, o.status, o.notes, o.created_at, m.name AS item_name, u.full_name AS taken_by FROM orders o JOIN menu_items m ON m.id=o.item_id LEFT JOIN users u ON u.id=o.user_id WHERE o.order_ref=? OR o.order_ref LIKE ? ORDER BY o.id DESC");
+    $stmt = db()->prepare("SELECT o.order_ref, o.customer_name, o.quantity, o.unit_price, o.total_amount, o.status, o.notes, o.created_at, m.name AS item_name, m.category AS item_category, u.full_name AS taken_by FROM orders o JOIN menu_items m ON m.id=o.item_id LEFT JOIN users u ON u.id=o.user_id WHERE o.order_ref=? OR o.order_ref LIKE ? ORDER BY o.id DESC");
     $stmt->bind_param("ss", $baseRef, $like);
     $stmt->execute();
     $groups = group_orders($stmt->get_result()->fetch_all(MYSQLI_ASSOC));
@@ -169,11 +169,12 @@ function create_order(?int $userId, string $customerName, array $lines, string $
     $base_ref = null;
     $saved = [];
     $grand_total = 0.0;
+    $position = 0;
     // Everything below is saved together. If anything fails, rollback() cancels the whole order.
     $conn->begin_transaction();
     try {
-        foreach (array_values($lines) as $position => $line) {
-            // Look up the item and its price in the database. The price is never taken from the form.
+        foreach (array_values($lines) as $line) {
+            // Look up the main item and its price in the database. The price is never taken from the form.
             $find->bind_param("i", $line["item_id"]);
             $find->execute();
             $item = $find->get_result()->fetch_assoc();
@@ -199,6 +200,33 @@ function create_order(?int $userId, string $customerName, array $lines, string $
             // Replace the temporary reference with the real one.
             $set_ref->bind_param("si", $ref, $order_id);
             $set_ref->execute();
+            $position++;
+            
+            // Save add-ons for this item
+            if (!empty($line["addons"]) && is_array($line["addons"])) {
+                foreach ($line["addons"] as $addon) {
+                    $find->bind_param("i", $addon["item_id"]);
+                    $find->execute();
+                    $addon_item = $find->get_result()->fetch_assoc();
+                    if (!$addon_item) {
+                        $conn->rollback();
+                        return null;
+                    }
+                    $addon_unit = (float) $addon_item["price"];
+                    $addon_total = round($addon_unit * $addon["quantity"], 2);
+                    $grand_total += $addon_total;
+                    $saved[] = ["name" => $addon_item["name"], "quantity" => $addon["quantity"], "total" => $addon_total];
+                    
+                    $temp_ref = "TMP-" . bin2hex(random_bytes(6));
+                    $insert->bind_param("siisidds", $temp_ref, $userId, $addon["item_id"], $customerName, $addon["quantity"], $addon_unit, $addon_total, $notes);
+                    $insert->execute();
+                    $addon_order_id = (int) $conn->insert_id;
+                    $addon_ref = $base_ref . "-" . ($position + 1);
+                    $set_ref->bind_param("si", $addon_ref, $addon_order_id);
+                    $set_ref->execute();
+                    $position++;
+                }
+            }
         }
         // All lines were saved. Make the change permanent.
         $conn->commit();

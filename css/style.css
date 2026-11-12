@@ -984,6 +984,11 @@ h1 em {
   border-color: rgba(255, 142, 114, 0.48);
   color: #ffd2c5;
 }
+.alert-warning {
+  background: rgba(253, 137, 18, 0.15);
+  border-color: rgba(253, 137, 18, 0.5);
+  color: #fff3e0;
+}
 .alert ul {
   margin: 7px 0 0;
   padding-left: 21px;
@@ -1194,7 +1199,7 @@ h1 em {
 .order-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 18px;
+  gap: 15px 18px;
 }
 .order-form > .field:first-child,
 .order-lines,
@@ -1202,18 +1207,11 @@ h1 em {
 .order-submit {
   grid-column: 1 / -1;
 }
-.order-line {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 100px 36px;
-  align-items: end;
-  gap: 10px;
-}
-.order-line .field {
-  margin-bottom: 12px;
-}
-.line-remove {
-  margin-bottom: 12px;
-  font-size: 18px;
+
+.order-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 .order-submit {
   display: flex;
@@ -1268,41 +1266,26 @@ h1 em {
   color: var(--orange);
   font-size: 19px;
 }
-/* Payment page: method cards, cash fields and change box */
-.pay-options {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+/* Payment page: cash fields and change box */
+.pay-option-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border: 1px solid var(--orange);
+  background: rgba(253, 137, 18, 0.1);
+  color: var(--muted);
   margin-bottom: 22px;
 }
-.pay-option {
-  position: relative;
-  cursor: pointer;
+.pay-option-selected strong {
+  color: var(--text);
+  font-size: 16px;
 }
-.pay-option input {
-  position: absolute;
-  opacity: 0;
-}
-.pay-card {
+.pay-option-selected small {
   display: block;
-  height: 100%;
-  padding: 14px;
-  border: 1px solid var(--line);
-  background: rgba(0, 20, 26, 0.5);
-}
-.pay-card strong,
-.pay-card small {
-  display: block;
-}
-.pay-card small {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
-}
-.pay-option input:checked + .pay-card {
-  border-color: var(--orange);
-  box-shadow: inset 0 0 0 1px var(--orange);
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 .quick-cash {
   display: flex;
@@ -1424,6 +1407,112 @@ h1 em {
 }
 .receipt-actions {
   justify-content: center;
+}
+
+/* Slim receipt variant */
+.receipt.slim {
+  padding: 20px 16px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.receipt.slim .receipt-head h1 {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.receipt.slim .receipt-head p {
+  font-size: 11px;
+}
+.receipt.slim .receipt-title {
+  margin: 14px 0;
+  font-size: 11px;
+}
+.receipt.slim .receipt-meta {
+  gap: 8px 16px;
+  margin: 14px 0;
+  padding: 12px 0;
+}
+.receipt.slim .receipt-meta dt {
+  font-size: 9px;
+}
+.receipt.slim .receipt-meta dd {
+  font-size: 11px;
+}
+.receipt.slim .receipt-items {
+  font-size: 10px;
+}
+.receipt.slim .receipt-items th,
+.receipt.slim .receipt-items td {
+  padding: 6px 4px;
+}
+.receipt.slim .receipt-lines {
+  margin-top: 12px;
+}
+.receipt.slim .receipt-row {
+  font-size: 10px;
+  padding: 3px 0;
+}
+.receipt.slim .receipt-grand {
+  font-size: 13px;
+}
+.receipt.slim .receipt-note,
+.receipt.slim .receipt-thanks {
+  font-size: 10px;
+  margin-top: 12px;
+}
+.receipt.slim .receipt-thanks {
+  padding-top: 12px;
+}
+
+/* Addon list inline in item cell */
+.receipt-addon-list {
+  margin-top: 3px;
+}
+.receipt-addon-line {
+  font-size: 9px;
+  color: #888;
+  font-style: italic;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Customer order confirmation receipt */
+.receipt-instruction {
+  color: var(--orange);
+  font-weight: 600;
+  margin-top: 12px !important;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.receipt-total {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 2px solid var(--line);
+}
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.receipt-total-row strong {
+  font-size: 18px;
+  color: var(--orange);
+}
+.receipt-notes {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 20, 26, 0.3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Print styles for slim receipt */
+@media print {
+  .receipt.slim {
+    max-width: 100%;
+    padding: 16px;
+    box-shadow: none;
+  }
 }
 .public-order-form .public-menu-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4481,4 +4570,708 @@ svg {
 }
 .qty-label input.has-error {
   border-color: #ff8e72 !important;
+}
+
+/* ===== Flash Card Style Menu Items (Customer Order Page) ===== */
+.flash-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 8px 0 16px;
+}
+
+.flash-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 26, 33, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+  min-height: 380px;
+}
+
+.flash-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  border-color: var(--orange);
+}
+
+.flash-card-image {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background: rgba(253, 137, 18, 0.12);
+  overflow: hidden;
+}
+
+.flash-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.flash-card:hover .flash-card-image img {
+  transform: scale(1.05);
+}
+
+.flash-card-category {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  background: rgba(0, 20, 26, 0.9);
+  border: 1px solid var(--orange);
+  border-radius: 4px;
+  color: var(--orange);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.flash-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 8px;
+}
+
+.flash-card-name {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.flash-card-description {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  flex: 1;
+  margin: 0;
+}
+
+.flash-card-price {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--orange);
+  margin: 4px 0 0;
+}
+
+.flash-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.5);
+}
+
+.flash-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flash-qty-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
+}
+
+.flash-qty-btn:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: rgba(253, 137, 18, 0.12);
+}
+
+.flash-qty-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.flash-qty-input {
+  width: 56px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  -moz-appearance: textfield;
+}
+
+.flash-qty-input::-webkit-outer-spin-button,
+.flash-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.flash-qty-input:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+/* ===== Add-on Section in Flash Cards (Public Menu) ===== */
+.flash-card-addons {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.flash-addons-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flash-addon-hint {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.flash-addons-list {
+  min-height: 28px;
+  margin-bottom: 8px;
+}
+
+.flash-addon-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(253, 137, 18, 0.08);
+  border: 1px solid rgba(253, 137, 18, 0.2);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.flash-addon-name {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flash-addon-qty {
+  color: var(--orange);
+  font-weight: 600;
+  font-size: 12px;
+  background: rgba(253, 137, 18, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.flash-addon-remove {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.flash-addon-remove:hover {
+  color: #c00;
+  background: rgba(204, 0, 0, 0.1);
+}
+
+.flash-addon-fields {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.flash-addon-select-field {
+  flex: 1;
+  min-width: 160px;
+}
+
+.flash-addon-select-field label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.flash-addon-select {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font-size: 13px;
+  border-radius: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.flash-addon-select:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+.flash-addon-qty-field {
+  flex: 0 0 70px;
+}
+
+.flash-addon-qty-field label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.flash-addon-qty {
+  width: 100%;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  -moz-appearance: textfield;
+}
+
+.flash-addon-qty::-webkit-outer-spin-button,
+.flash-addon-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.flash-addon-qty:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+.flash-addon-add {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--orange);
+  background: var(--orange);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.flash-addon-add:hover {
+  background: #c76800;
+  border-color: #c76800;
+}
+
+/* ===== Add-on Option Bar (Staff Order Page) ===== */
+.order-line {
+  position: relative;
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.order-line .field {
+  margin-bottom: 0;
+}
+
+.line-remove {
+  margin-bottom: 0;
+  font-size: 18px;
+}
+
+.order-line-main {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex: 1;
+  min-width: 300px;
+}
+
+.order-line-main .field:first-child {
+  flex: 1;
+  min-width: 220px;
+  max-width: 380px;
+}
+
+.order-line-main .field-qty {
+  flex: 0 0 80px;
+}
+
+.addon-bar {
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 12px;
+  position: relative;
+  width: 43.5%;
+  min-width: 280px;
+  max-width: 400px;
+  flex-shrink: 0;
+}
+
+.addon-fields {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.addon-fields .field {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.addon-fields .addon-select-field {
+  min-width: 220px;
+  max-width: none;
+  flex: 4;
+}
+
+.addon-fields .addon-qty-field {
+  max-width: 80px;
+  flex: 0 0 80px;
+}
+
+.addon-fields .addon-add-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 46px;
+}
+
+.addon-fields .addon-select,
+.addon-fields .addon-qty {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid rgba(253, 137, 18, 0.4);
+  border-radius: 2px;
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.addon-fields .addon-select:focus,
+.addon-fields .addon-qty:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+.addon-fields label {
+  display: block;
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.addon-fields label svg {
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  color: var(--orange);
+}
+
+.addon-fields .addon-select,
+.addon-fields .addon-qty {
+  width: 100%;
+  height: 46px;
+  padding: 11px 13px;
+  border: 1px solid rgba(253, 211, 151, 0.28);
+  border-radius: 2px;
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.addon-fields .addon-select:focus,
+.addon-fields .addon-qty:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+.addon-fields .addon-qty {
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.addon-fields .addon-qty::-webkit-outer-spin-button,
+.addon-fields .addon-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.addon-add-btn {
+  height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--orange);
+  background: var(--orange);
+  color: #002832;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+  white-space: nowrap;
+}
+
+.addon-add-btn:hover {
+  background: #fdd397;
+  border-color: #fdd397;
+  transform: translateY(-1px);
+}
+
+.addon-list {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(253, 211, 151, 0.15);
+}
+
+.addon-item {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px;
+  background: rgba(0, 20, 26, 0.6);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.addon-item:last-child {
+  margin-bottom: 0;
+}
+
+.addon-item-fields {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.addon-item-fields .field {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.addon-item-fields .addon-select-field {
+  min-width: 200px;
+  max-width: none;
+  flex: 4;
+}
+
+.addon-item-fields .addon-qty-field {
+  max-width: 70px;
+  flex: 0 0 70px;
+}
+
+.addon-item-fields .addon-select,
+.addon-item-fields .addon-qty {
+  width: 100%;
+  height: 36px;
+  padding: 6px 10px;
+  border: 1px solid rgba(253, 211, 151, 0.28);
+  border-radius: 2px;
+  background: rgba(0, 20, 26, 0.8);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.addon-item-fields .addon-select:focus,
+.addon-item-fields .addon-qty:focus {
+  outline: 2px solid rgba(253, 137, 18, 0.5);
+  border-color: var(--orange);
+}
+
+.addon-item-fields .addon-qty {
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.addon-item-fields .addon-qty::-webkit-outer-spin-button,
+.addon-item-fields .addon-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.addon-remove-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 142, 114, 0.5);
+  background: rgba(133, 49, 29, 0.2);
+  color: #ffb39e;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.addon-remove-btn:hover {
+  background: rgba(133, 49, 29, 0.4);
+  border-color: #ff8e72;
+  color: #ffd2c5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 560px) {
+  .flash-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .flash-card {
+    min-height: auto;
+  }
+
+  .flash-card-image {
+    height: 160px;
+  }
+
+  .order-line {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-line {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-line-main {
+    flex-direction: row;
+    align-items: end;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .order-line-main .field:first-child {
+    max-width: none;
+    flex: 1;
+  }
+
+  .order-line-main .field-qty {
+    flex: 0 0 70px;
+    margin-left: auto;
+  }
+
+  .addon-bar {
+    width: 100%;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .addon-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .addon-fields .addon-select-field,
+  .addon-fields .addon-qty-field {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .addon-add-btn {
+    width: 100%;
+  }
+
+  .addon-list {
+    margin-top: 6px;
+  }
+
+  .addon-item-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .addon-item-fields .addon-select-field,
+  .addon-item-fields .addon-qty-field {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .addon-remove-btn {
+    width: 100%;
+  }
+
+  .order-line-main {
+    grid-template-columns: minmax(200px, 1fr) 80px 32px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 800px) {
+  .flash-menu-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
 }

@@ -103,17 +103,35 @@
   var lines = document.getElementById("order-lines"),
     add = document.getElementById("add-line"),
     totalOut = document.getElementById("order-total");
+  
+  // Get all addon select options for price lookup
+  function getAddonPrice(addonId) {
+    var select = lines.querySelector('select[name="addon_id[]"]');
+    if (!select) return 0;
+    var opt = select.querySelector('option[value="' + addonId + '"]');
+    return opt && opt.dataset.price ? parseFloat(opt.dataset.price) : 0;
+  }
+  
   // Adds up price × quantity of every row. The price comes from the selected option's data-price.
   // This is only a preview; PHP calculates the real total from the prices in the database.
   function updateTotal() {
     if (!lines || !totalOut) return;
     var total = 0;
     lines.querySelectorAll(".order-line").forEach(function (row) {
-      var select = row.querySelector("select"),
-        opt = select.options[select.selectedIndex],
+      var select = row.querySelector("select[name='item_id[]']"),
+        opt = select && select.options[select.selectedIndex],
         price = opt && opt.dataset.price ? parseFloat(opt.dataset.price) : 0,
-        qty = parseInt(row.querySelector("input").value, 10);
+        qty = parseInt(row.querySelector("input[name='quantity[]']").value, 10);
       total += price * (isNaN(qty) || qty < 1 ? 0 : qty);
+      
+      // Add add-on prices
+      row.querySelectorAll(".addon-item").forEach(function (addonRow) {
+        var addonSelect = addonRow.querySelector("select[name='addon_id[]']"),
+          addonOpt = addonSelect && addonSelect.options[addonSelect.selectedIndex],
+          addonPrice = addonOpt && addonOpt.dataset.price ? parseFloat(addonOpt.dataset.price) : 0,
+          addonQty = parseInt(addonRow.querySelector("input[name='addon_quantity[]']").value, 10);
+        total += addonPrice * (isNaN(addonQty) || addonQty < 1 ? 0 : addonQty);
+      });
     });
     totalOut.textContent =
       "₱" +
@@ -122,6 +140,42 @@
         maximumFractionDigits: 2,
       });
   }
+  
+  // Update line indexes after add/remove
+  function updateLineIndexes() {
+    if (!lines) return;
+    var rows = lines.querySelectorAll(".order-line");
+    rows.forEach(function (row, index) {
+      row.dataset.lineIndex = index;
+      // Update main select and inputs
+      row.querySelectorAll("[name='item_id[]'], [name='quantity[]']").forEach(function (el) {
+        // No index in name needed, they're arrays
+      });
+      // Update addon bar
+      var addonBar = row.querySelector(".addon-bar");
+      if (addonBar) {
+        addonBar.dataset.lineIndex = index;
+        addonBar.querySelectorAll("[name='addon_parent[]']").forEach(function (el) {
+          el.value = index;
+        });
+        var addBtn = addonBar.querySelector(".addon-add-btn");
+        if (addBtn) addBtn.dataset.lineIndex = index;
+      }
+      // Update addon list items
+      row.querySelectorAll(".addon-item").forEach(function (addonRow, addonIndex) {
+        addonRow.dataset.addonIndex = addonIndex;
+        addonRow.querySelectorAll("[name='addon_parent[]']").forEach(function (el) {
+          el.value = index;
+        });
+        var removeBtn = addonRow.querySelector(".addon-remove-btn");
+        if (removeBtn) {
+          removeBtn.dataset.lineIndex = index;
+          removeBtn.dataset.addonIndex = addonIndex;
+        }
+      });
+    });
+  }
+  
   // Hide the remove button when only one row is left.
   function syncRemove() {
     if (!lines) return;
@@ -130,24 +184,141 @@
       row.querySelector(".line-remove").hidden = rows.length < 2;
     });
   }
+  
+  // Create addon item HTML
+  function createAddonItem(lineIndex, addonIndex, addonId, addonQty) {
+    var addonSelect = lines.querySelector('.addon-bar select[name="addon_id[]"]');
+    var addonOptionsHtml = '<option value="">Choose an add-on…</option>';
+    if (addonSelect) {
+      Array.from(addonSelect.options).forEach(function (opt) {
+        if (opt.value) {
+          addonOptionsHtml += '<option value="' + opt.value + '" data-price="' + (opt.dataset.price || '') + '"' + (opt.value == addonId ? ' selected' : '') + '>' + opt.textContent + '</option>';
+        }
+      });
+    }
+    
+    var div = document.createElement("div");
+    div.className = "addon-item";
+    div.dataset.addonIndex = addonIndex;
+    div.innerHTML = 
+      '<div class="addon-item-fields">' +
+        '<div class="field addon-select-field"><label>Add-on</label><select name="addon_id[]" class="addon-select">' + addonOptionsHtml + '</select><span class="field-error" aria-live="polite"></span></div>' +
+        '<div class="field field-qty addon-qty-field"><label>Qty</label><input type="number" name="addon_quantity[]" class="addon-qty" value="' + (addonQty || 1) + '" min="1" max="20" /><span class="field-error" aria-live="polite"></span></div>' +
+        '<input type="hidden" name="addon_parent[]" value="' + lineIndex + '" />' +
+      '</div>' +
+      '<button type="button" class="addon-remove-btn" aria-label="Remove add-on" data-line-index="' + lineIndex + '" data-addon-index="' + addonIndex + '">×</button>';
+    return div;
+  }
+  
   // Recalculate on any change, and handle the remove button.
   if (lines) {
     lines.addEventListener("change", updateTotal);
     lines.addEventListener("input", updateTotal);
     lines.addEventListener("click", function (e) {
+      // Remove main line
       var b = e.target.closest(".line-remove");
       if (b) {
         b.closest(".order-line").remove();
         syncRemove();
+        updateLineIndexes();
         updateTotal();
+        return;
+      }
+      
+      // Add addon
+      var addBtn = e.target.closest(".addon-add-btn");
+      if (addBtn) {
+        var lineIndex = parseInt(addBtn.dataset.lineIndex, 10);
+        var row = lines.querySelector('.order-line[data-line-index="' + lineIndex + '"]');
+        if (!row) return;
+        
+        // Updated selectors for new field wrapper structure
+        var addonSelect = row.querySelector('.addon-bar .addon-select-field select[name="addon_id[]"]');
+        var addonQtyInput = row.querySelector('.addon-bar .addon-qty-field input[name="addon_quantity[]"]');
+        
+        if (!addonSelect || !addonSelect.value) {
+          addonSelect.classList.add("has-error");
+          return;
+        }
+        addonSelect.classList.remove("has-error");
+        
+        var addonId = addonSelect.value;
+        var addonQty = parseInt(addonQtyInput.value, 10) || 1;
+        
+        // Reset the addon bar
+        addonSelect.selectedIndex = 0;
+        addonQtyInput.value = 1;
+        
+        // Create addon item
+        var addonList = row.querySelector(".addon-list");
+        if (!addonList) {
+          addonList = document.createElement("div");
+          addonList.className = "addon-list";
+          addonList.dataset.lineIndex = lineIndex;
+          row.appendChild(addonList);
+        }
+        
+        var addonItems = addonList.querySelectorAll(".addon-item");
+        var addonIndex = addonItems.length;
+        
+        var addonItem = createAddonItem(lineIndex, addonIndex, addonId, addonQty);
+        addonList.appendChild(addonItem);
+        
+        updateTotal();
+        return;
+      }
+      
+      // Remove addon
+      var removeAddonBtn = e.target.closest(".addon-remove-btn");
+      if (removeAddonBtn) {
+        var lineIndex = parseInt(removeAddonBtn.dataset.lineIndex, 10);
+        var addonIndex = parseInt(removeAddonBtn.dataset.addonIndex, 10);
+        var row = lines.querySelector('.order-line[data-line-index="' + lineIndex + '"]');
+        if (!row) return;
+        
+        var addonList = row.querySelector(".addon-list");
+        if (!addonList) return;
+        
+        var addonItems = addonList.querySelectorAll(".addon-item");
+        var targetItem = addonList.querySelector('.addon-item[data-addon-index="' + addonIndex + '"]');
+        if (targetItem) {
+          targetItem.remove();
+          
+          // Re-index remaining addon items
+          var remainingItems = addonList.querySelectorAll(".addon-item");
+          remainingItems.forEach(function (item, idx) {
+            item.dataset.addonIndex = idx;
+            var removeBtn = item.querySelector(".addon-remove-btn");
+            if (removeBtn) removeBtn.dataset.addonIndex = idx;
+            item.querySelectorAll("[name='addon_parent[]']").forEach(function (el) {
+              el.value = lineIndex;
+            });
+          });
+          
+          if (remainingItems.length === 0) {
+            addonList.remove();
+          }
+        }
+        
+        updateTotal();
+        return;
       }
     });
+    
     // The + Add another item button copies the first row, resets it and focuses the drop-down.
     if (add)
       add.addEventListener("click", function () {
-        var copy = lines.querySelector(".order-line").cloneNode(true);
-        copy.querySelector("select").selectedIndex = 0;
-        copy.querySelector("input").value = "1";
+        var firstRow = lines.querySelector(".order-line");
+        if (!firstRow) return;
+        var copy = firstRow.cloneNode(true);
+        copy.querySelector("select[name='item_id[]']").selectedIndex = 0;
+        copy.querySelector("input[name='quantity[]']").value = "1";
+        // Remove any addon items from the copy
+        copy.querySelectorAll(".addon-list").forEach(function (el) { el.remove(); });
+        // Reset addon bar
+        copy.querySelectorAll('.addon-bar select[name="addon_id[]"]').forEach(function (el) { el.selectedIndex = 0; });
+        copy.querySelectorAll('.addon-bar input[name="addon_quantity[]"]').forEach(function (el) { el.value = "1"; });
+        
         copy.querySelectorAll(".field-error").forEach(function (x) {
           x.textContent = "";
         });
@@ -156,10 +327,108 @@
         });
         lines.appendChild(copy);
         syncRemove();
+        updateLineIndexes();
         updateTotal();
-        copy.querySelector("select").focus();
+        copy.querySelector("select[name='item_id[]']").focus();
       });
+    
+    // Initialize line indexes
+    updateLineIndexes();
     syncRemove();
     updateTotal();
+  }
+
+  // Public menu (pages/menu.php): handle add-ons per item
+  var publicForm = document.querySelector(".public-order-form");
+  if (publicForm) {
+    var flashCards = publicForm.querySelectorAll(".flash-card[data-has-addons='true']");
+    
+    // Get addon options template from the first select
+    var addonOptionsTemplate = '';
+    var firstSelect = publicForm.querySelector('.flash-addon-select');
+    if (firstSelect) {
+      addonOptionsTemplate = firstSelect.innerHTML;
+    }
+    
+    flashCards.forEach(function (card) {
+      var itemId = card.dataset.itemId;
+      var qtyInput = card.querySelector('.flash-qty-input[name="quantity[' + itemId + ']"]');
+      var addonSection = card.querySelector('.flash-card-addons');
+      var addonList = card.querySelector('.flash-addons-list');
+      var addonSelect = card.querySelector('.flash-addon-select');
+      var addonQtyInput = card.querySelector('.flash-addon-qty');
+      var addonAddBtn = card.querySelector('.flash-addon-add');
+      
+      // Show/hide addon section based on quantity
+      function toggleAddonSection() {
+        var qty = parseInt(qtyInput.value, 10) || 0;
+        if (qty > 0) {
+          addonSection.hidden = false;
+        } else {
+          addonSection.hidden = true;
+          // Clear addons when quantity goes to 0
+          addonList.innerHTML = '';
+        }
+      }
+      
+      qtyInput.addEventListener('change', toggleAddonSection);
+      qtyInput.addEventListener('input', toggleAddonSection);
+      
+      // Add addon button
+      if (addonAddBtn) {
+        addonAddBtn.addEventListener('click', function () {
+          if (!addonSelect.value) {
+            addonSelect.classList.add('has-error');
+            return;
+          }
+          addonSelect.classList.remove('has-error');
+          
+          var addonId = addonSelect.value;
+          var addonQty = parseInt(addonQtyInput.value, 10) || 1;
+          var addonName = addonSelect.options[addonSelect.selectedIndex].textContent;
+          var addonPrice = addonSelect.options[addonSelect.selectedIndex].dataset.price || 0;
+          
+          // Create addon row
+          var addonIndex = addonList.querySelectorAll('.flash-addon-item').length;
+          var div = document.createElement('div');
+          div.className = 'flash-addon-item';
+          div.dataset.addonIndex = addonIndex;
+          div.innerHTML = 
+            '<span class="flash-addon-name">' + addonName + '</span>' +
+            '<span class="flash-addon-qty">×' + addonQty + '</span>' +
+            '<input type="hidden" name="addon[' + itemId + '][]" value="' + addonId + '" />' +
+            '<input type="hidden" name="addon_qty[' + itemId + '][]" value="' + addonQty + '" />' +
+            '<button type="button" class="flash-addon-remove" aria-label="Remove add-on" data-addon-index="' + addonIndex + '">×</button>';
+          addonList.appendChild(div);
+          
+          // Reset select
+          addonSelect.selectedIndex = 0;
+          addonQtyInput.value = 1;
+        });
+      }
+      
+      // Remove addon (event delegation)
+      addonList.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.flash-addon-remove');
+        if (removeBtn) {
+          var addonIndex = parseInt(removeBtn.dataset.addonIndex, 10);
+          var items = addonList.querySelectorAll('.flash-addon-item');
+          var targetItem = addonList.querySelector('.flash-addon-item[data-addon-index="' + addonIndex + '"]');
+          if (targetItem) {
+            targetItem.remove();
+            // Re-index remaining items
+            var remainingItems = addonList.querySelectorAll('.flash-addon-item');
+            remainingItems.forEach(function (item, idx) {
+              item.dataset.addonIndex = idx;
+              var btn = item.querySelector('.flash-addon-remove');
+              if (btn) btn.dataset.addonIndex = idx;
+            });
+          }
+        }
+      });
+      
+      // Initialize
+      toggleAddonSection();
+    });
   }
 })();

@@ -135,8 +135,42 @@ function validate_order(): array
             $errors[] = "Item " . ($index + 1) . " needs a menu item and a quantity from 1 to " . MAX_LINE_QUANTITY . ".";
             continue;
         }
-        $lines[] = ["item_id" => (int) $item_id, "quantity" => (int) $quantity];
+        $lines[] = [
+            "item_id" => (int) $item_id, 
+            "quantity" => (int) $quantity,
+            "addons" => []
+        ];
     }
+    
+    // Handle add-ons: addon_id[], addon_quantity[], addon_parent[]
+    $addon_ids = $_POST["addon_id"] ?? [];
+    $addon_quantities = $_POST["addon_quantity"] ?? [];
+    $addon_parents = $_POST["addon_parent"] ?? [];
+    
+    if (is_array($addon_ids) && is_array($addon_quantities) && is_array($addon_parents)) {
+        $addon_ids = array_values($addon_ids);
+        $addon_quantities = array_values($addon_quantities);
+        $addon_parents = array_values($addon_parents);
+        
+        foreach ($addon_ids as $index => $raw_addon_id) {
+            $parent_idx = filter_var($addon_parents[$index] ?? "", FILTER_VALIDATE_INT);
+            $addon_id = filter_var($raw_addon_id, FILTER_VALIDATE_INT);
+            $addon_qty = filter_var($addon_quantities[$index] ?? "", FILTER_VALIDATE_INT);
+            
+            if ($addon_id === false || $addon_id < 1 || $addon_qty === false || $addon_qty < 1 || $addon_qty > 20) {
+                // Invalid addon, skip silently (or could add error)
+                continue;
+            }
+            
+            if ($parent_idx !== false && $parent_idx >= 0 && isset($lines[$parent_idx])) {
+                $lines[$parent_idx]["addons"][] = [
+                    "item_id" => (int) $addon_id,
+                    "quantity" => (int) $addon_qty,
+                ];
+            }
+        }
+    }
+    
     if (!$lines && !$errors) {
         $errors[] = "Add at least one menu item.";
     }
@@ -150,13 +184,17 @@ function validate_order(): array
     return [$errors, ["customer_name" => $customer, "lines" => $lines, "notes" => $notes]];
 }
 
-/** Public order: quantity[menu_item_id] => amount, where 0 means "not ordered". */
+/** Public order: quantity[menu_item_id] => amount, where 0 means "not ordered".
+ *  Also accepts addon[item_id][] and addon_qty[item_id][] for add-ons per item.
+ */
 function validate_public_order(): array
 {
     $errors = [];
     $customer = post_string("customer_name");
     $notes = post_string("notes");
     $quantities = $_POST["quantity"] ?? [];
+    $addon_ids = $_POST["addon"] ?? [];
+    $addon_qtys = $_POST["addon_qty"] ?? [];
 
     if ($customer === "" || mb_strlen($customer) < 2 || mb_strlen($customer) > 100) {
         $errors[] = "Please enter your name (2 to 100 characters).";
@@ -177,7 +215,24 @@ function validate_public_order(): array
                 break;
             }
             if ($quantity > 0) {
-                $lines[] = ["item_id" => (int) $item_id, "quantity" => (int) $quantity];
+                $line = ["item_id" => (int) $item_id, "quantity" => (int) $quantity, "addons" => []];
+                
+                // Check for add-ons for this item
+                $item_addon_ids = $addon_ids[$item_id] ?? [];
+                $item_addon_qtys = $addon_qtys[$item_id] ?? [];
+                if (is_array($item_addon_ids) && is_array($item_addon_qtys)) {
+                    $item_addon_ids = array_values($item_addon_ids);
+                    $item_addon_qtys = array_values($item_addon_qtys);
+                    foreach ($item_addon_ids as $idx => $raw_addon_id) {
+                        $addon_id = filter_var($raw_addon_id, FILTER_VALIDATE_INT);
+                        $addon_qty = filter_var($item_addon_qtys[$idx] ?? "", FILTER_VALIDATE_INT);
+                        if ($addon_id !== false && $addon_id >= 1 && $addon_qty !== false && $addon_qty >= 1 && $addon_qty <= 20) {
+                            $line["addons"][] = ["item_id" => (int) $addon_id, "quantity" => (int) $addon_qty];
+                        }
+                    }
+                }
+                
+                $lines[] = $line;
             }
         }
     }

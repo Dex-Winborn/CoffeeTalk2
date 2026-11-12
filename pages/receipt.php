@@ -27,6 +27,30 @@ if (!$payment) {
 $is_cash = $payment["method"] === "Cash";
 $method_label = $is_cash ? "Cash" : "Cashless · " . $payment["method"];
 
+// Process items: group addons with their parent items
+$processed_items = [];
+$current_main = null;
+foreach ($order['items'] as $line) {
+    $is_addon = strtolower($line['category']) === 'add-ons';
+    if ($is_addon) {
+        if ($current_main !== null) {
+            $current_main['addons'][] = $line;
+        } else {
+            // Orphan addon, treat as regular item
+            $processed_items[] = $line;
+        }
+    } else {
+        if ($current_main !== null) {
+            $processed_items[] = $current_main;
+        }
+        $current_main = $line;
+        $current_main['addons'] = [];
+    }
+}
+if ($current_main !== null) {
+    $processed_items[] = $current_main;
+}
+
 $pageTitle = "Receipt " . $order["ref"] . " — Coffee Talk";
 $activePage = "transactions";
 $extraScripts = ["js/receipt.js"];
@@ -35,7 +59,7 @@ require __DIR__ . "/../includes/header.php";
 <main class="app-main"><div class="app-wrap app-wrap-narrow">
 <div class="no-print"><?= flash_render() ?></div>
 <?php /* The receipt itself. Elements with the no-print class are hidden when printing. */ ?>
-<article class="receipt" id="receipt">
+<article class="receipt slim" id="receipt">
 <header class="receipt-head"><h1>Coffee Talk</h1><p>Elfa Building, 2nd Floor · Chipeco Avenue<br />Calamba City, Laguna</p><p class="receipt-title">DIGITAL RECEIPT</p></header>
 <dl class="receipt-meta">
 <div><dt>Order no.</dt><dd><?= e($order['ref']) ?></dd></div>
@@ -44,8 +68,32 @@ require __DIR__ . "/../includes/header.php";
 <div><dt>Cashier</dt><dd><?= e($payment['cashier'] ?? '—') ?></dd></div>
 </dl>
 <table class="receipt-items">
-<thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
-<tbody><?php foreach ($order['items'] as $line): ?><tr><td><?= e($line['name']) ?></td><td><?= (int) $line['qty'] ?></td><td><?= e(peso($line['unit'])) ?></td><td><?= e(peso($line['total'])) ?></td></tr><?php endforeach; ?></tbody>
+<thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
+<tbody>
+<?php foreach ($processed_items as $line): 
+    // Calculate total with addons
+    $addon_total = 0;
+    foreach ($line['addons'] as $addon) {
+        $addon_total += $addon['total'];
+    }
+    $combined_total = $line['total'] + $addon_total;
+?>
+<tr>
+<td>
+<?= e($line['name']) ?>
+<?php if ($line['addons']): ?>
+<div class="receipt-addon-list">
+<?php foreach ($line['addons'] as $addon): ?>
+<div class="receipt-addon-line">+ <?= e($addon['name']) ?> ×<?= (int) $addon['qty'] ?></div>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
+</td>
+<td><?= (int) $line['qty'] ?></td>
+<td><?= e(peso($combined_total)) ?></td>
+</tr>
+<?php endforeach; ?>
+</tbody>
 </table>
 <?php if ($order['notes'] !== ''): ?><p class="receipt-note">Note: <?= e($order['notes']) ?></p><?php endif; ?>
 <div class="receipt-lines">

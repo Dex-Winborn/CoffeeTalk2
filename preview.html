@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#002830" />
+    <title>Coffee Talk — Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="app-body order-page">
+<div class="announcement">
+    Order something good <span>·</span> Made fresh at Coffee Talk
+</div>
+<header class="site-header">
+    <nav class="nav-wrap" aria-label="Main navigation">
+        <a class="brand" href="#home" aria-label="Coffee Talk home">
+            <img src="images/logo.png" alt="Coffee Talk" />
+        </a>
+        <button class="menu-toggle" type="button" aria-label="Open navigation" aria-controls="primary-navigation" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+        </button>
+        <div class="nav-links" id="primary-navigation">
+            <a href="#story">Reviews</a>
+            <a href="#menu">Order online</a>
+            <a href="#space">The space</a>
+            <a href="#visit" class="nav-cta">Come visit</a>
+        </div>
+    </nav>
+</header>
+
+<main class="app-main"><div class="app-wrap">
+<div class="app-head"><div><div class="eyebrow">Coffee Talk Menu</div><h1 class="app-title">Pick your favorites.</h1><p class="app-lead">Choose quantities, add your name, and place an order. Pay at the café counter.</p></div></div>
+
+<form class="public-order-form" method="post" data-validate novalidate>
+<div class="flash-menu-grid" role="list">
+<article class="flash-card" role="listitem" data-item-id="1">
+<div class="flash-card-image">
+<span class="flash-card-category">Coffee (Iced / Hot)</span>
+<img src="images/lobby.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Spanish Latte</h3>
+<p class="flash-card-description">Sweet condensed milk, espresso, milk</p>
+<div class="flash-card-price">₱150.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="1">−</button>
+<input type="number" class="flash-qty-input" name="quantity[1]" id="item-1" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="1">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="2">
+<div class="flash-card-image">
+<span class="flash-card-category">Coffee (Iced / Hot)</span>
+<img src="images/lobby.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Caffe Latte</h3>
+<p class="flash-card-description">Espresso with steamed milk</p>
+<div class="flash-card-price">₱120.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="2">−</button>
+<input type="number" class="flash-qty-input" name="quantity[2]" id="item-2" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="2">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="3">
+<div class="flash-card-image">
+<span class="flash-card-category">Premium Coffee</span>
+<img src="images/lobby.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">CT Signature Blend</h3>
+<p class="flash-card-description">House blend with caramel notes</p>
+<div class="flash-card-price">₱160.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="3">−</button>
+<input type="number" class="flash-qty-input" name="quantity[3]" id="item-3" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="3">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="4">
+<div class="flash-card-image">
+<span class="flash-card-category">Non-Coffee</span>
+<img src="images/egg-brulee.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Matcha Latte</h3>
+<p class="flash-card-description">Premium Japanese matcha</p>
+<div class="flash-card-price">₱140.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="4">−</button>
+<input type="number" class="flash-qty-input" name="quantity[4]" id="item-4" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="4">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="5">
+<div class="flash-card-image">
+<span class="flash-card-category">Chill Blend (Frappe)</span>
+<img src="images/egg-brulee.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Oreo CB</h3>
+<p class="flash-card-description">Cookies and cream frappe</p>
+<div class="flash-card-price">₱165.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="5">−</button>
+<input type="number" class="flash-qty-input" name="quantity[5]" id="item-5" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="5">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="6">
+<div class="flash-card-image">
+<span class="flash-card-category">Pasta</span>
+<img src="images/pasta.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Creamy Carbonara</h3>
+<p class="flash-card-description">Bacon, cream, parmesan</p>
+<div class="flash-card-price">₱180.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="6">−</button>
+<input type="number" class="flash-qty-input" name="quantity[6]" id="item-6" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="6">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="7">
+<div class="flash-card-image">
+<span class="flash-card-category">Premium Croffle</span>
+<img src="images/egg-brulee.jpg" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Banana Pudding</h3>
+<p class="flash-card-description">Caramelized banana, custard, cookies</p>
+<div class="flash-card-price">₱180.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="7">−</button>
+<input type="number" class="flash-qty-input" name="quantity[7]" id="item-7" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="7">+</button>
+</div>
+</div>
+</article>
+</div>
+
+<section class="panel" style="margin-top: 24px;">
+<div class="panel-head"><h2>Add-ons</h2></div>
+<div class="flash-menu-grid" role="list" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+<article class="flash-card" role="listitem" data-item-id="16" style="min-height: 320px;">
+<div class="flash-card-image" style="height: 140px;">
+<span class="flash-card-category">Add-on</span>
+<img src="images/logo.png" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Sauce / Syrup</h3>
+<div class="flash-card-price">₱30.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="16">−</button>
+<input type="number" class="flash-qty-input" name="quantity[16]" id="item-16" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="16">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="17" style="min-height: 320px;">
+<div class="flash-card-image" style="height: 140px;">
+<span class="flash-card-category">Add-on</span>
+<img src="images/logo.png" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Espresso Shot</h3>
+<div class="flash-card-price">₱30.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="17">−</button>
+<input type="number" class="flash-qty-input" name="quantity[17]" id="item-17" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="17">+</button>
+</div>
+</div>
+</article>
+
+<article class="flash-card" role="listitem" data-item-id="18" style="min-height: 320px;">
+<div class="flash-card-image" style="height: 140px;">
+<span class="flash-card-category">Add-on</span>
+<img src="images/logo.png" alt="" loading="lazy" />
+</div>
+<div class="flash-card-content">
+<h3 class="flash-card-name">Sub Oatmilk</h3>
+<div class="flash-card-price">₱40.00</div>
+</div>
+<div class="flash-card-footer">
+<div class="flash-qty" role="group" aria-label="Quantity">
+<button type="button" class="flash-qty-btn flash-qty-minus" aria-label="Decrease quantity" data-item-id="18">−</button>
+<input type="number" class="flash-qty-input" name="quantity[18]" id="item-18" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
+<button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="18">+</button>
+</div>
+</div>
+</article>
+</div>
+</section>
+
+<section class="panel order-customer">
+<div class="field"><label for="customer_name">Your name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" autocomplete="name" placeholder="So we can call your order" /><span class="field-error" aria-live="polite"></span></div>
+<div class="field"><label for="notes">Order notes <span class="optional">(optional)</span></label><input type="text" id="notes" name="notes" maxlength="255" placeholder="Less sweet, oat milk, no ice…" /></div>
+<button class="button" type="submit">Place order</button>
+</section>
+</form>
+</div></main>
+
+<footer class="footer">
+<div class="footer-inner">
+<a class="brand" href="#home" aria-label="Coffee Talk home"><img src="images/logo.png" alt="Coffee Talk" /></a>
+<span>Good coffee. Good company. © <span id="year"></span> Coffee Talk.</span>
+<div class="footer-links">
+<a href="#menu">Menu</a><a href="#visit">Visit</a>
+<a href="https://www.instagram.com/coffeetalk.calamba" target="_blank" rel="noopener noreferrer" aria-label="Coffee Talk on Instagram">Instagram</a>
+<a href="#home">Back to top ↑</a>
+</div>
+</div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
