@@ -9,8 +9,8 @@ $user = current_user();
 $stats = db()->query("SELECT
         (SELECT COUNT(*) FROM menu_items WHERE is_active=1) AS items,
         (SELECT COUNT(*) FROM menu_items WHERE is_active=0) AS inactive,
-        (SELECT COUNT(*) FROM orders WHERE created_at >= CURDATE()) AS orders_today,
-        (SELECT COUNT(*) FROM orders WHERE status IN ('Pending','Preparing')) AS open_orders,
+        (SELECT COUNT(DISTINCT SUBSTRING_INDEX(order_ref,'-',3)) FROM orders WHERE created_at >= CURDATE()) AS orders_today,
+        (SELECT COUNT(DISTINCT SUBSTRING_INDEX(order_ref,'-',3)) FROM orders WHERE status IN ('Pending','Preparing')) AS open_orders,
         (SELECT COALESCE(SUM(amount_due),0) FROM payments WHERE paid_at >= CURDATE()) AS sales")->fetch_assoc();
 // The last 6 orders, shown in the table below.
 $recent = fetch_recent_orders(6);

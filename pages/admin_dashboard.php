@@ -9,7 +9,7 @@ $totals = db()->query("SELECT
         (SELECT COUNT(*) FROM users) AS accounts,
         (SELECT COUNT(*) FROM users WHERE role = 'staff') AS staff,
         (SELECT COUNT(*) FROM menu_items WHERE is_active = 1) AS menu_items,
-        (SELECT COUNT(*) FROM orders) AS orders")->fetch_assoc();
+        (SELECT COUNT(DISTINCT SUBSTRING_INDEX(order_ref,'-',3)) FROM orders) AS orders")->fetch_assoc();
 
 // Page settings, then the shared header.
 $pageTitle = "Admin Dashboard — Coffee Talk";
