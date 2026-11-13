@@ -150,6 +150,7 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
 <input type="number" class="flash-qty-input" name="quantity[<?= (int) $item['id'] ?>]" id="item-<?= (int) $item['id'] ?>" min="0" max="20" step="1" value="0" aria-label="Quantity" inputmode="numeric" />
 <button type="button" class="flash-qty-btn flash-qty-plus" aria-label="Increase quantity" data-item-id="<?= (int) $item['id'] ?>">+</button>
 </div>
+<div class="flash-card-addon-badges" aria-label="Added add-ons"></div>
 </div>
 
 <?php if ($has_addons && $addon_items): ?>

@@ -355,6 +355,7 @@
       var qtyInput = card.querySelector('.flash-qty-input[name="quantity[' + itemId + ']"]');
       var addonSection = card.querySelector('.flash-card-addons');
       var addonList = card.querySelector('.flash-addons-list');
+      var addonBadges = card.querySelector('.flash-card-addon-badges');
       var addonSelect = card.querySelector('.flash-addon-select');
       var addonQtyInput = card.querySelector('.flash-addon-qty');
       var addonAddBtn = card.querySelector('.flash-addon-add');
@@ -368,6 +369,7 @@
           addonSection.hidden = true;
           // Clear addons when quantity goes to 0
           addonList.innerHTML = '';
+          if (addonBadges) addonBadges.innerHTML = '';
         }
       }
       
@@ -388,7 +390,7 @@
           var addonName = addonSelect.options[addonSelect.selectedIndex].textContent;
           var addonPrice = addonSelect.options[addonSelect.selectedIndex].dataset.price || 0;
           
-          // Create addon row
+          // Create addon row in list
           var addonIndex = addonList.querySelectorAll('.flash-addon-item').length;
           var div = document.createElement('div');
           div.className = 'flash-addon-item';
@@ -398,12 +400,25 @@
             '<span class="flash-addon-qty">×' + addonQty + '</span>' +
             '<input type="hidden" name="addon[' + itemId + '][]" value="' + addonId + '" />' +
             '<input type="hidden" name="addon_qty[' + itemId + '][]" value="' + addonQty + '" />' +
-            '<button type="button" class="flash-addon-remove" aria-label="Remove add-on" data-addon-index="' + addonIndex + '">×</button>';
+            '<button type="button" class="flash-addon-remove" aria-label="Remove add-on" data-addon-index="' + addonIndex + '" data-addon-id="' + addonId + '">×</button>';
           addonList.appendChild(div);
+          
+          // Create badge in card footer
+          if (addonBadges) {
+            var badge = document.createElement('span');
+            badge.className = 'flash-addon-badge';
+            badge.dataset.addonId = addonId;
+            badge.dataset.addonIndex = addonIndex;
+            badge.innerHTML = addonName + ' <span class="flash-addon-badge-qty">×' + addonQty + '</span>' +
+              '<button type="button" class="flash-addon-badge-remove" aria-label="Remove ' + addonName + '" data-addon-id="' + addonId + '" data-addon-index="' + addonIndex + '">×</button>';
+            addonBadges.appendChild(badge);
+          }
           
           // Reset select
           addonSelect.selectedIndex = 0;
           addonQtyInput.value = 1;
+          
+          updateOrderSummary();
         });
       }
       
@@ -412,6 +427,7 @@
         var removeBtn = e.target.closest('.flash-addon-remove');
         if (removeBtn) {
           var addonIndex = parseInt(removeBtn.dataset.addonIndex, 10);
+          var addonId = removeBtn.dataset.addonId;
           var items = addonList.querySelectorAll('.flash-addon-item');
           var targetItem = addonList.querySelector('.flash-addon-item[data-addon-index="' + addonIndex + '"]');
           if (targetItem) {
@@ -421,11 +437,34 @@
             remainingItems.forEach(function (item, idx) {
               item.dataset.addonIndex = idx;
               var btn = item.querySelector('.flash-addon-remove');
-              if (btn) btn.dataset.addonIndex = idx;
+              if (btn) {
+                btn.dataset.addonIndex = idx;
+                btn.dataset.addonId = item.querySelector('input[name^="addon["]').value;
+              }
             });
           }
+          // Remove badge
+          if (addonBadges && addonId) {
+            var badge = addonBadges.querySelector('.flash-addon-badge[data-addon-id="' + addonId + '"][data-addon-index="' + addonIndex + '"]');
+            if (badge) badge.remove();
+          }
+          updateOrderSummary();
         }
       });
+      
+      // Remove badge from footer (event delegation)
+      if (addonBadges) {
+        addonBadges.addEventListener('click', function (e) {
+          var removeBtn = e.target.closest('.flash-addon-badge-remove');
+          if (removeBtn) {
+            var addonId = removeBtn.dataset.addonId;
+            var addonIndex = parseInt(removeBtn.dataset.addonIndex, 10);
+            // Find and click the corresponding remove button in the list
+            var listRemoveBtn = addonList.querySelector('.flash-addon-remove[data-addon-id="' + addonId + '"][data-addon-index="' + addonIndex + '"]');
+            if (listRemoveBtn) listRemoveBtn.click();
+          }
+        });
+      }
       
       // Initialize
       toggleAddonSection();

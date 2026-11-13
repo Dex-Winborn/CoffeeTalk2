@@ -4877,6 +4877,57 @@ svg {
   background: rgba(204, 0, 0, 0.1);
 }
 
+/* ===== Addon Badges in Card Footer ===== */
+.flash-card-addon-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 24px;
+}
+
+.flash-addon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(253, 137, 18, 0.12);
+  border: 1px solid rgba(253, 137, 18, 0.3);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.flash-addon-badge-qty {
+  background: var(--orange);
+  color: #002832;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.flash-addon-badge-remove {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
+}
+
+.flash-addon-badge-remove:hover {
+  color: #c00;
+  background: rgba(204, 0, 0, 0.15);
+}
+
 .flash-addon-fields {
   display: flex;
   align-items: end;
