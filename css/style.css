@@ -4827,17 +4827,27 @@ svg {
   margin-bottom: 8px;
 }
 
+.flash-addons-list .flash-card-addon-badges {
+  margin: 0 0 6px;
+  min-height: 0;
+}
+
+.flash-addons-list .flash-card-addon-badges:empty {
+  display: none;
+  margin: 0;
+}
+
 .flash-addon-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   background: rgba(253, 137, 18, 0.08);
   border: 1px solid rgba(253, 137, 18, 0.2);
   border-radius: 6px;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .flash-addon-name {
@@ -4851,22 +4861,22 @@ svg {
 .flash-addon-qty {
   color: var(--orange);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   background: rgba(253, 137, 18, 0.15);
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
 }
 
 .flash-addon-remove {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   background: transparent;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
   border-radius: 4px;
   transition: color 0.2s, background 0.2s;
@@ -4877,7 +4887,7 @@ svg {
   background: rgba(204, 0, 0, 0.1);
 }
 
-/* ===== Addon Badges in Card Footer ===== */
+/* ===== Addon Badges ===== */
 .flash-card-addon-badges {
   display: flex;
   flex-wrap: wrap;
@@ -5015,9 +5025,186 @@ svg {
   transition: background 0.2s, border-color 0.2s;
 }
 
-.flash-addon-add:hover {
-  background: #c76800;
-  border-color: #c76800;
+  .flash-addon-add:hover {
+    background: #c76800;
+    border-color: #c76800;
+  }
+
+/* ===== Floating cart (public menu) ===== */
+.cart-float {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.cart-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--orange);
+  background: var(--orange);
+  color: #002832;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(251, 137, 15, 0.35);
+  transition: background 0.2s, transform 0.2s;
+}
+.cart-toggle:hover {
+  background: #fdd397;
+  transform: translateY(-2px);
+}
+.cart-toggle[aria-expanded="true"] {
+  background: #fdd397;
+}
+.cart-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.cart-count {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  background: #002832;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+}
+.cart-panel {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  width: min(360px, 92vw);
+  max-height: 70vh;
+  background: rgba(0, 26, 33, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+}
+.cart-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cart-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: var(--serif);
+  color: var(--text);
+}
+.cart-close {
+  padding: 0 6px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cart-close:hover {
+  color: var(--text);
+}
+.cart-body {
+  padding: 12px 16px;
+  overflow: auto;
+  flex: 1;
+}
+.cart-empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cart-item-body {
+  min-width: 0;
+}
+.cart-item-name {
+  display: block;
+  font-weight: 700;
+  color: var(--text);
+}
+.cart-item-meta {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cart-item-line {
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
+}
+.cart-item-remove {
+  padding: 0 6px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.cart-item-remove:hover {
+  color: #c00;
+}
+.cart-addon {
+  margin: 4px 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  border-left: 2px solid rgba(253, 137, 18, 0.3);
+  padding-left: 6px;
+}
+.cart-addon-cost {
+  margin-left: 10px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cart-foot {
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(0, 20, 26, 0.6);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.cart-foot .cart-total-label {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cart-foot .cart-total {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--serif);
+  color: var(--text);
+}
+.cart-foot .cart-checkout {
+  width: 100%;
 }
 
 /* ===== Add-on Option Bar (Staff Order Page) ===== */

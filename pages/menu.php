@@ -132,7 +132,7 @@ $img = $item_images[(int) $item['id']] ?? 'images/logo.png';
 // Categories that can have add-ons (drinks)
 $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non-Coffee', 'Wellness Blend (Iced)', 'Wellness Blend (Hot)', 'Chill Blend (Frappe)']);
 ?>
-<article class="flash-card" role="listitem" data-item-id="<?= (int) $item['id'] ?>" data-has-addons="<?= $has_addons ? 'true' : 'false' ?>">
+<article class="flash-card" role="listitem" data-item-id="<?= (int) $item['id'] ?>" data-name="<?= e($item['name']) ?>" data-price="<?= (float) $item['price'] ?>" data-has-addons="<?= $has_addons ? 'true' : 'false' ?>">
 <div class="flash-card-image">
 <span class="flash-card-category"><?= e($category) ?></span>
 <img src="<?= e(url($img)) ?>" alt="" loading="lazy" onerror="this.src='<?= e(url('images/logo.png')) ?>'" />
@@ -154,9 +154,9 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
 
 <?php if ($has_addons && $addon_items): ?>
 <div class="flash-card-addons" hidden>
-<div class="flash-card-addon-badges" aria-label="Added add-ons"></div>
 <div class="flash-addons-header">Add-ons <span class="flash-addon-hint">(optional)</span></div>
 <div class="flash-addons-list" data-parent-id="<?= (int) $item['id'] ?>">
+<div class="flash-card-addon-badges" aria-label="Added add-ons"></div>
 <!-- Add-on rows will be inserted here by JavaScript -->
 </div>
 <div class="flash-addon-fields">
@@ -188,8 +188,31 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
 <section class="panel order-customer">
 <div class="field"><label for="customer_name">Your name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" autocomplete="name" placeholder="So we can call your order" /><span class="field-error" aria-live="polite"></span></div>
 <div class="field"><label for="notes">Order notes <span class="optional">(optional)</span></label><input type="text" id="notes" name="notes" maxlength="255" placeholder="Less sweet, oat milk, no ice…" /></div>
-<button class="button" type="submit">Place order</button>
 </section>
+
+<!-- Floating cart: always-visible icon with a summary of the chosen items and the checkout button -->
+<div class="cart-float" aria-label="Cart">
+  <button type="button" class="cart-toggle" aria-expanded="false" aria-controls="cart-panel">
+    <span class="cart-icon">🛒</span>
+    <span class="cart-count">0</span>
+  </button>
+  <div class="cart-panel" id="cart-panel" hidden>
+    <div class="cart-head">
+      <h3 class="cart-title">Your order</h3>
+      <button type="button" class="cart-close" aria-label="Close cart">×</button>
+    </div>
+    <div class="cart-body">
+      <div class="cart-items" id="cart-items">
+        <div class="cart-empty">Your cart is empty. Add items from the menu above.</div>
+      </div>
+    </div>
+    <div class="cart-foot">
+      <p class="cart-total-label">Total</p>
+      <p class="cart-total"><span id="cart-total">₱0.00</span></p>
+      <button type="submit" class="button cart-checkout">Place order</button>
+    </div>
+  </div>
+</div>
 </form>
 <?php endif; ?>
 </div></main>

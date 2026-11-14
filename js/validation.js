@@ -368,7 +368,7 @@
         } else {
           addonSection.hidden = true;
           // Clear addons when quantity goes to 0
-          addonList.innerHTML = '';
+          addonList.querySelectorAll('.flash-addon-item').forEach(function (el) { el.remove(); });
           if (addonBadges) addonBadges.innerHTML = '';
         }
       }
@@ -387,30 +387,23 @@
           
           var addonId = addonSelect.value;
           var addonQty = parseInt(addonQtyInput.value, 10) || 1;
-          var addonName = addonSelect.options[addonSelect.selectedIndex].textContent;
+          var addonName = addonSelect.options[addonSelect.selectedIndex].textContent.replace(/\s*\(\+.*?\)$/, '');
           var addonPrice = addonSelect.options[addonSelect.selectedIndex].dataset.price || 0;
           
-          // Create addon row in list
-          var addonIndex = addonList.querySelectorAll('.flash-addon-item').length;
-          var div = document.createElement('div');
-          div.className = 'flash-addon-item';
-          div.dataset.addonIndex = addonIndex;
-          div.innerHTML = 
-            '<span class="flash-addon-name">' + addonName + '</span>' +
-            '<span class="flash-addon-qty">×' + addonQty + '</span>' +
-            '<input type="hidden" name="addon[' + itemId + '][]" value="' + addonId + '" />' +
-            '<input type="hidden" name="addon_qty[' + itemId + '][]" value="' + addonQty + '" />' +
-            '<button type="button" class="flash-addon-remove" aria-label="Remove add-on" data-addon-index="' + addonIndex + '" data-addon-id="' + addonId + '">×</button>';
-          addonList.appendChild(div);
-          
-          // Create badge in card footer
+          // Create addon badge with submitted values
           if (addonBadges) {
+            var addonIndex = addonBadges.querySelectorAll('.flash-addon-badge').length;
             var badge = document.createElement('span');
             badge.className = 'flash-addon-badge';
             badge.dataset.addonId = addonId;
             badge.dataset.addonIndex = addonIndex;
-            badge.innerHTML = addonName + ' <span class="flash-addon-badge-qty">×' + addonQty + '</span>' +
+            badge.innerHTML =
+              addonName + ' <span class="flash-addon-badge-qty">×' + addonQty + '</span>' +
+              '<input type="hidden" name="addon[' + itemId + '][]" value="' + addonId + '" />' +
+              '<input type="hidden" name="addon_qty[' + itemId + '][]" value="' + addonQty + '" />' +
               '<button type="button" class="flash-addon-badge-remove" aria-label="Remove ' + addonName + '" data-addon-id="' + addonId + '" data-addon-index="' + addonIndex + '">×</button>';
+            badge.dataset.addonName = addonName;
+            badge.dataset.addonPrice = addonPrice;
             addonBadges.appendChild(badge);
           }
           
@@ -418,56 +411,139 @@
           addonSelect.selectedIndex = 0;
           addonQtyInput.value = 1;
           
-          updateOrderSummary();
+          renderCart();
         });
       }
       
-      // Remove addon (event delegation)
-      addonList.addEventListener('click', function (e) {
-        var removeBtn = e.target.closest('.flash-addon-remove');
-        if (removeBtn) {
-          var addonIndex = parseInt(removeBtn.dataset.addonIndex, 10);
-          var addonId = removeBtn.dataset.addonId;
-          var items = addonList.querySelectorAll('.flash-addon-item');
-          var targetItem = addonList.querySelector('.flash-addon-item[data-addon-index="' + addonIndex + '"]');
-          if (targetItem) {
-            targetItem.remove();
-            // Re-index remaining items
-            var remainingItems = addonList.querySelectorAll('.flash-addon-item');
-            remainingItems.forEach(function (item, idx) {
-              item.dataset.addonIndex = idx;
-              var btn = item.querySelector('.flash-addon-remove');
-              if (btn) {
-                btn.dataset.addonIndex = idx;
-                btn.dataset.addonId = item.querySelector('input[name^="addon["]').value;
-              }
-            });
-          }
-          // Remove badge
-          if (addonBadges && addonId) {
-            var badge = addonBadges.querySelector('.flash-addon-badge[data-addon-id="' + addonId + '"][data-addon-index="' + addonIndex + '"]');
-            if (badge) badge.remove();
-          }
-          updateOrderSummary();
-        }
-      });
-      
-      // Remove badge from footer (event delegation)
+      // Remove addon badge (event delegation)
       if (addonBadges) {
         addonBadges.addEventListener('click', function (e) {
           var removeBtn = e.target.closest('.flash-addon-badge-remove');
-          if (removeBtn) {
-            var addonId = removeBtn.dataset.addonId;
-            var addonIndex = parseInt(removeBtn.dataset.addonIndex, 10);
-            // Find and click the corresponding remove button in the list
-            var listRemoveBtn = addonList.querySelector('.flash-addon-remove[data-addon-id="' + addonId + '"][data-addon-index="' + addonIndex + '"]');
-            if (listRemoveBtn) listRemoveBtn.click();
-          }
+          if (!removeBtn) return;
+          var badge = removeBtn.closest('.flash-addon-badge');
+          if (badge) badge.remove();
+          var remaining = addonBadges.querySelectorAll('.flash-addon-badge');
+          remaining.forEach(function (item, idx) {
+            item.dataset.addonIndex = idx;
+            var btn = item.querySelector('.flash-addon-badge-remove');
+            if (btn) btn.dataset.addonIndex = idx;
+          });
+          renderCart();
         });
       }
       
       // Initialize
       toggleAddonSection();
     });
+
+    // Floating cart: always-visible icon with a summary of the chosen items
+    var cartToggle = document.querySelector(".cart-toggle");
+    var cartPanel = document.getElementById("cart-panel");
+    var cartClose = document.querySelector(".cart-close");
+    var cartItems = document.getElementById("cart-items");
+    var cartTotal = document.getElementById("cart-total");
+    var cartCount = document.querySelector(".cart-count");
+    var cartItemsList = publicForm.querySelectorAll(".flash-card");
+
+    function escapeHtml(text) {
+      var div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatMoney(amount) {
+      return "₱" + amount.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Rebuild the cart summary from the quantities and add-on badges on the cards.
+    function renderCart() {
+      var total = 0;
+      var count = 0;
+      var html = "";
+      var hasItems = false;
+
+      cartItemsList.forEach(function (card) {
+        var itemId = card.dataset.itemId;
+        var qtyInput = card.querySelector('.flash-qty-input[name="quantity[' + itemId + ']"]');
+        if (!qtyInput) return;
+        var qty = parseInt(qtyInput.value, 10) || 0;
+        if (qty < 1) return;
+
+        var price = parseFloat(card.dataset.price || 0);
+        var name = card.dataset.name || "";
+        var lineTotal = price * qty;
+        total += lineTotal;
+        count += qty;
+        hasItems = true;
+
+        html += '<div class="cart-item" data-item-id="' + itemId + '">' +
+          '<div class="cart-item-body">' +
+          '<strong class="cart-item-name">' + escapeHtml(name) + '</strong>' +
+          '<span class="cart-item-meta">Qty ' + qty + " × " + formatMoney(price) + '</span>' +
+          '</div>' +
+          '<span class="cart-item-line">' + formatMoney(lineTotal) + '</span>' +
+          '<button type="button" class="cart-item-remove" aria-label="Remove ' + escapeHtml(name) + '">×</button>' +
+          '</div>';
+
+        var badges = card.querySelector(".flash-card-addon-badges");
+        if (badges) {
+          badges.querySelectorAll(".flash-addon-badge").forEach(function (badge) {
+            var addonQtyText = badge.querySelector(".flash-addon-badge-qty");
+            var addonQty = 1;
+            if (addonQtyText) addonQty = parseInt(addonQtyText.textContent.replace("×", ""), 10) || 1;
+            var addonPrice = parseFloat(badge.dataset.addonPrice || 0);
+            var addonLine = addonPrice * addonQty;
+            total += addonLine;
+            html += '<div class="cart-addon">+' + escapeHtml(badge.dataset.addonName || "") + " ×" + addonQty + ' <span class="cart-addon-cost">' + formatMoney(addonLine) + '</span></div>';
+          });
+        }
+      });
+
+      cartItems.innerHTML = hasItems ? html : '<div class="cart-empty">Your cart is empty. Add items from the menu above.</div>';
+      cartTotal.textContent = formatMoney(total);
+      cartCount.textContent = count;
+      cartToggle.setAttribute("aria-label", count ? "Cart (" + count + " items)" : "Cart (empty)");
+    }
+
+    if (cartToggle && cartPanel && cartItems) {
+      // Open / close the cart panel
+      cartToggle.addEventListener("click", function () {
+        var isHidden = cartPanel.hidden;
+        cartPanel.hidden = !isHidden;
+        cartToggle.setAttribute("aria-expanded", String(!isHidden));
+      });
+
+      cartClose.addEventListener("click", function () {
+        cartPanel.hidden = true;
+        cartToggle.setAttribute("aria-expanded", "false");
+      });
+
+      // Close when clicking outside the panel
+      document.addEventListener("click", function (event) {
+        if (cartPanel.hidden) return;
+        if (!cartPanel.contains(event.target) && !cartToggle.contains(event.target)) {
+          cartPanel.hidden = true;
+          cartToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Remove an item from the cart by setting its quantity to 0
+      cartItems.addEventListener("click", function (event) {
+        var removeBtn = event.target.closest(".cart-item-remove");
+        if (!removeBtn) return;
+        var itemId = removeBtn.closest(".cart-item").dataset.itemId;
+        var input = publicForm.querySelector('.flash-qty-input[name="quantity[' + itemId + ']"]');
+        if (input) {
+          input.value = 0;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+
+      // Refresh the summary whenever quantities or add-ons change
+      publicForm.addEventListener("input", renderCart);
+      publicForm.addEventListener("change", renderCart);
+
+      renderCart();
+    }
   }
 })();
