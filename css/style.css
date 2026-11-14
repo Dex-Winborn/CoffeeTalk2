@@ -5118,6 +5118,15 @@ svg {
 .cart-close:hover {
   color: var(--text);
 }
+.cart-customer {
+  padding: 0 16px 12px;
+}
+.cart-customer .field {
+  margin-bottom: 10px;
+}
+.cart-customer .field:last-child {
+  margin-bottom: 0;
+}
 .cart-body {
   padding: 12px 16px;
   overflow: auto;

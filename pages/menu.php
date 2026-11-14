@@ -184,12 +184,6 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
 <?php endforeach; ?>
 <?php endif; ?>
 
-<?php /* Customer name (required) and optional notes. */ ?>
-<section class="panel order-customer">
-<div class="field"><label for="customer_name">Your name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" autocomplete="name" placeholder="So we can call your order" /><span class="field-error" aria-live="polite"></span></div>
-<div class="field"><label for="notes">Order notes <span class="optional">(optional)</span></label><input type="text" id="notes" name="notes" maxlength="255" placeholder="Less sweet, oat milk, no ice…" /></div>
-</section>
-
 <!-- Floating cart: always-visible icon with a summary of the chosen items and the checkout button -->
 <div class="cart-float" aria-label="Cart">
   <button type="button" class="cart-toggle" aria-expanded="false" aria-controls="cart-panel">
@@ -200,6 +194,10 @@ $has_addons = in_array($category, ['Coffee (Iced / Hot)', 'Premium Coffee', 'Non
     <div class="cart-head">
       <h3 class="cart-title">Your order</h3>
       <button type="button" class="cart-close" aria-label="Close cart">×</button>
+    </div>
+    <div class="cart-customer">
+      <div class="field"><label for="customer_name">Your name</label><input type="text" id="customer_name" name="customer_name" required minlength="2" maxlength="100" autocomplete="name" placeholder="So we can call your order" /><span class="field-error" aria-live="polite"></span></div>
+      <div class="field"><label for="notes">Order notes <span class="optional">(optional)</span></label><input type="text" id="notes" name="notes" maxlength="255" placeholder="Less sweet, oat milk, no ice…" /></div>
     </div>
     <div class="cart-body">
       <div class="cart-items" id="cart-items">
